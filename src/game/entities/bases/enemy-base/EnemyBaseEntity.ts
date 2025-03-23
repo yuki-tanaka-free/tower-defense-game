@@ -1,15 +1,17 @@
-import { Vector2 } from "../../../math/Vector2";
 import { Entity } from "../../Entity";
+import { EntityType } from "../../EntityType";
 import { EnemyBaseState } from "./EnemyBaseState";
 
 /**
  * 敵の基地
  */
 export class EnemyBaseEntity extends Entity<EnemyBaseState> {
-    constructor(
-        protected _position: Vector2, // 座標
-    ){
-        super(_position);
+
+    /**
+     * エンティティの種類
+     */
+    public get getEntityType(): EntityType {
+        return EntityType.EnemyBase;
     }
 
     /**
@@ -23,9 +25,9 @@ export class EnemyBaseEntity extends Entity<EnemyBaseState> {
      * 描画に必要な情報を渡す
      */
     public getState(): EnemyBaseState {
-        return { 
+        return this.getCachedState(() => ({ 
             id: this.id,
-            position: this._position 
-        }
+            position: this.position 
+        }));
     }
 }

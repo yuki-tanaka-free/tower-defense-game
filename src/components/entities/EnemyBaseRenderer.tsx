@@ -6,9 +6,9 @@ interface EnemyBaseRendererProps {
     state: EnemyBaseState;
 }
 
-export const EnemyBaseRenderer: React.FC<EnemyBaseRendererProps> = ({ state }) => {
+export const EnemyBaseRenderer: React.FC<EnemyBaseRendererProps> = React.memo(({ state }) => {
     return (
         <EntityRenderer state={state} color="red">
         </EntityRenderer>
     )
-}
+});

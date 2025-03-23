@@ -2,7 +2,7 @@ import React from "react";
 import { GameManager } from "../../game/core/GameManager";
 import "../../css/uis/WaveControlRenderer.css"
 
-export const WaveControlRenderer: React.FC = React.memo(() => {
+export const WaveControlRenderer: React.FC = () => {
     const gameManager = GameManager.getInstance();
     const waveManager = gameManager.waveManager;
     // const [isPaused, setPaused] = useState(false);
@@ -30,4 +30,4 @@ export const WaveControlRenderer: React.FC = React.memo(() => {
             )}
         </div>
     )
-});
+};

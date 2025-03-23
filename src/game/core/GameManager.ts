@@ -2,17 +2,21 @@ import { EnemyParameterTable } from "../entities/enemys/EnemyParameterTable";
 import { EntitiesManager } from "../entities/EntitiesManager";
 import { MapManager } from "../map/MapManager";
 import { WaveManager } from "../wave/WaveManager";
-import { GameState } from "./GameState";
+import { GameState, GameStateUtil } from "./GameState";
 
 export class GameManager {
     private static _instance: GameManager | null = null;
+
     private _mapManager: MapManager | null = null;
     private _waveManager: WaveManager | null = null;
     private _entityManager: EntitiesManager | null = null;
+    
     private lastTime: number = 0;
     private isRunning: boolean = false;
     private updateCallback: ((state: GameState) => void) | null = null;
     private initialized: boolean = false;
+
+    private prevState: GameState | null = null;
 
     private constructor() {}
 
@@ -53,6 +57,7 @@ export class GameManager {
         this.isRunning = false;
         this.updateCallback = updateCallback;
         this.initialized = true;
+        this.prevState = this._entityManager.getState();
     }
 
     /**
@@ -118,7 +123,13 @@ export class GameManager {
 
             // 状態更新の通知
             if (this.updateCallback) {
-                this.updateCallback(this._entityManager.getState());
+                const newState = this._entityManager.getState();
+
+                // 変更があれば画面に更新を通知
+                if (GameStateUtil.hasChanged(this.prevState, newState)) {
+                    this.prevState = newState;
+                    this.updateCallback(newState);
+                }
             }
         }
 

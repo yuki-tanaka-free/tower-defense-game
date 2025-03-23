@@ -1,5 +1,6 @@
 import { Vector2 } from "../../math/Vector2";
 import { Entity } from "../Entity";
+import { EntityType } from "../EntityType";
 import { TowerState } from "./TowerState";
 
 /**
@@ -21,21 +22,29 @@ export enum TowerAttackType {
 }
 
 /**
- * 全てのタワーの親クラス
+ * タワークラス
  */
-export abstract class TowerEntity extends Entity<TowerState> {
+export class TowerEntity extends Entity<TowerState> {
     constructor(
-        protected _position: Vector2, // 座標
-        protected _towerType: TowerType, // タワーの種類
-        protected _attackPower: number, // 攻撃力
-        protected _attackRange: number, // 攻撃範囲
-        protected _attackType: TowerAttackType, // 攻撃の種類
-        protected _defensePower: number, // 防御力
-        protected _buyAmount: number, // 購入時の値段
-        protected _updateAmount: number, // アップグレードにかかる値段
-        protected _saleAmount: number // 売る時の値段
+        position: Vector2,             // 座標
+        private _towerType: TowerType, // タワーの種類
+        private _level: number, // タワーのレベル
+        private _attackPower: number, // 攻撃力
+        private _attackRange: number, // 攻撃範囲
+        private _attackType: TowerAttackType, // 攻撃の種類
+        private _defensePower: number, // 防御力
+        private _buyAmount: number, // 購入時の値段
+        private _updateAmount: number, // アップグレードにかかる値段
+        private _saleAmount: number // 売る時の値段
     ) {
-        super(_position);
+        super(position);
+    }
+
+    /**
+     * エンティティの種類
+     */
+    public get getEntityType(): EntityType {
+        return EntityType.Tower;
     }
 
     /**
@@ -97,20 +106,23 @@ export abstract class TowerEntity extends Entity<TowerState> {
     /**
      * 行動を起こす
      */
-    public abstract update(deltaTime: number): void;
+    public update(_deltaTime: number): void {
+
+    }
 
     /**
      * 描画に必要な情報を返す
      * @returns 
      */
     public getState(): TowerState {
-        return { 
+        return this.getCachedState(() => ({ 
             id: this.id,
-            towerType: this._towerType, 
+            towerType: this._towerType,
+            level: this._level,
             buyAmount: this._buyAmount, 
             updateAmount: this._updateAmount, 
             saleAmount: this._saleAmount, 
-            position: this._position 
-        }
+            position: this.position 
+        }));
     }
 }

@@ -6,10 +6,12 @@ interface PlayerBaseRendererProps {
     state: PlayerBaseState;
 }
 
-export const PlayerBaseRenderer: React.FC<PlayerBaseRendererProps> = ({ state }) => {
+export const PlayerBaseRenderer: React.FC<PlayerBaseRendererProps> = React.memo(({ state }) => {
     return (
-        <EntityRenderer key={state.id} state={state} color="green">
+        <EntityRenderer state={state} color="green">
             HP: {state.hp}
         </EntityRenderer>
-    )
-}
+    );
+}, (prev, next) => {
+    return prev.state.hp === next.state.hp;
+});

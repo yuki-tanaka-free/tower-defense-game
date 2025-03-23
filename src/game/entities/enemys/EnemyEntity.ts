@@ -1,16 +1,17 @@
 import { Vector2 } from "../../math/Vector2";
 import { Entity } from "../Entity";
+import { EntityType } from "../EntityType";
 import { EnemyState } from "./EnemyState";
 import { EnemyType } from "./EnemyType";
 
 /**
- * 敵キャラクターのベースクラス
+ * 敵キャラクター
  */
 export class EnemyEntity extends Entity<EnemyState> {
     private _pathIndex: number = 0;
 
     constructor(
-        protected _position: Vector2,    // 座標
+        position: Vector2,             // 座標
         private _enemyPath: Vector2[], // エネミーの経路
         private _enemyType: EnemyType, // 敵の種類
         private _hp: number,           // 体力
@@ -19,9 +20,14 @@ export class EnemyEntity extends Entity<EnemyState> {
         private _speed: number,        // 移動速度
         private _attackRange: number   // 攻撃範囲
     ) {
-        super(_position);
+        super(position);
+    }
 
-        console.log(_enemyPath.length);
+    /**
+     * エンティティの種類
+     */
+    public get getEntityType(): EntityType {
+        return EntityType.Enemy;
     }
 
     /**
@@ -72,7 +78,11 @@ export class EnemyEntity extends Entity<EnemyState> {
      */
     public takeDamage(damage: number): void {
         const actualDamage = Math.max(0, damage - this._defensePower);
-        this._hp = Math.max(0, this._hp - actualDamage);
+        const newHp = Math.max(0, this._hp - actualDamage);
+        if (newHp !== this._hp) {
+            this._hp = newHp;
+            this.markDirty();
+        }
     }
 
     /**
@@ -88,12 +98,12 @@ export class EnemyEntity extends Entity<EnemyState> {
 
         if (distance < 0.05) {
             // 到達とみなして次へ
-            this._position = targetPos;
+            this.position = targetPos;
             this._pathIndex++;
         }
         else {
             const moveVector = direction.normalize().mul(this._speed * deltaTime);
-            this._position = this._position.add(moveVector);
+            this.position = this.position.add(moveVector);
         }
     }
 
@@ -116,11 +126,11 @@ export class EnemyEntity extends Entity<EnemyState> {
      * @returns 
      */
     public getState(): EnemyState {
-        return {
+        return this.getCachedState(() => ({
             id: this.id,
             enemyType: this._enemyType,
-            position: this._position,
+            position: this.position,
             hp: this._hp
-        };
+        }));
     }
 }

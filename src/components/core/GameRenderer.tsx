@@ -37,10 +37,11 @@ export const GameRenderer: React.FC = () => {
     // MapRendererは静的な描画なので更新を走らせない
     // EntitiesRendererは動的な描画なのでgameStateを渡して更新させる
     return (
-        <div className="game-renderer"
-        >
-            <MapRenderer />
-            <EntitiesRenderer gameState={gameState} />
+        <div className="game-renderer">
+            <div className="play-area">
+                <MapRenderer />
+                <EntitiesRenderer gameState={gameState} />
+            </div>
             <UIRenderer />
         </div>
     )

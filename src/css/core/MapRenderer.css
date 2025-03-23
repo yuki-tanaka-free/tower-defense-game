@@ -1,10 +1,8 @@
 /* マップ全体のスタイル */
 .map-container {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: relative;
     display: grid;
-    z-index: 0; /* 一番下に配置 */
+    z-index: 0;
 }
 
 /* マス（セル）のスタイル */

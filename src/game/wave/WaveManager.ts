@@ -2,6 +2,7 @@ import { EnemyEntity } from "../entities/enemys/EnemyEntity";
 import { EnemyParameterTable } from "../entities/enemys/EnemyParameterTable";
 import { EnemyType } from "../entities/enemys/EnemyType";
 import { EntitiesManager } from "../entities/EntitiesManager";
+import { EntityType } from "../entities/EntityType";
 import { MapManager } from "../map/MapManager";
 import { EnemySpawnData } from "./EnemySpawnData";
 import { Wave } from "./Wave";
@@ -83,7 +84,7 @@ export class WaveManager {
      */
     public isWaveRunning(): boolean {
         const waveInProgress = !this.isEnemySpawningFinished();
-        const hasLivingEnemies = this.entitiesManager.getEnemyCount() > 0;
+        const hasLivingEnemies = this.entitiesManager.getEntityCount(EntityType.Enemy) > 0;
         return waveInProgress || hasLivingEnemies;
     }
 
@@ -119,6 +120,6 @@ export class WaveManager {
             EnemyParameterTable.getRange(enemyType, level)
         );
 
-        this.entitiesManager.addEnemy(enemy);
+        this.entitiesManager.addEntity(enemy);
     }
 }

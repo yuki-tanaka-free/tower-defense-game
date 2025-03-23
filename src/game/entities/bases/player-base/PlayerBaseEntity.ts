@@ -1,5 +1,6 @@
 import { Vector2 } from "../../../math/Vector2";
 import { Entity } from "../../Entity";
+import { EntityType } from "../../EntityType";
 import { PlayerBaseState } from "./PlayerBaseState";
 
 /**
@@ -7,10 +8,17 @@ import { PlayerBaseState } from "./PlayerBaseState";
  */
 export class PlayerBaseEntity extends Entity<PlayerBaseState> {
     constructor(
-        protected _position: Vector2, // 座標
+        position: Vector2, // 座標
         protected _hp: number // 体力
     ) {
-        super(_position);
+        super(position);
+    }
+
+    /**
+     * エンティティの種類
+     */
+    public get getEntityType(): EntityType {
+        return EntityType.PlayerBase;
     }
 
     /**
@@ -24,10 +32,10 @@ export class PlayerBaseEntity extends Entity<PlayerBaseState> {
      * 描画に必要な情報を渡す
      */
     public getState(): PlayerBaseState {
-        return { 
+        return this.getCachedState(() => ({ 
             id: this.id,
-            position: this._position,
+            position: this.position,
             hp: this._hp
-        }
+        }));
     }
 }
