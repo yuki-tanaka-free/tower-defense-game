@@ -1,30 +1,27 @@
 import { Vector2 } from "../../math/Vector2";
 import { Entity } from "../Entity";
-
-/**
- * 敵の種類
- */
-export enum EnemyType {
-    Normal,  // 通常の敵
-    Fast,    // 速度の速い敵
-    Tank     // 体力の高い敵
-}
+import { EnemyState } from "./EnemyState";
+import { EnemyType } from "./EnemyType";
 
 /**
  * 敵キャラクターのベースクラス
  */
-export abstract class EnemyEntity extends Entity {
-    
+export class EnemyEntity extends Entity<EnemyState> {
+    private _pathIndex: number = 0;
+
     constructor(
-        protected _position: Vector2,   // 座標
-        protected _enemyType: EnemyType, // 敵の種類
-        protected _hp: number,      // 体力
-        protected _attackPower: number, // 攻撃力
-        protected _defensePower: number,// 防御力
-        protected _speed: number,       // 移動速度
-        protected _attackRange: number  // 攻撃範囲
+        protected _position: Vector2,    // 座標
+        private _enemyPath: Vector2[], // エネミーの経路
+        private _enemyType: EnemyType, // 敵の種類
+        private _hp: number,           // 体力
+        private _attackPower: number,  // 攻撃力
+        private _defensePower: number, // 防御力
+        private _speed: number,        // 移動速度
+        private _attackRange: number   // 攻撃範囲
     ) {
         super(_position);
+
+        console.log(_enemyPath.length);
     }
 
     /**
@@ -79,25 +76,51 @@ export abstract class EnemyEntity extends Entity {
     }
 
     /**
-     * 敵を移動させる
-     * @param direction 移動方向
+     * 更新処理
+     * @param deltaTime 
      */
-    public move(direction: Vector2): void {
-        this._position = new Vector2(
-            this._position.x + direction.x * this._speed,
-            this._position.y + direction.y * this._speed
-        );
+    public update(deltaTime: number): void {
+        if (this._enemyPath.length === 0 || this._pathIndex >= this._enemyPath.length) return;
+        
+        const targetPos = this._enemyPath[this._pathIndex];
+        const direction = targetPos.sub(this.position);
+        const distance = direction.magnitude();
+
+        if (distance < 0.05) {
+            // 到達とみなして次へ
+            this._position = targetPos;
+            this._pathIndex++;
+        }
+        else {
+            const moveVector = direction.normalize().mul(this._speed * deltaTime);
+            this._position = this._position.add(moveVector);
+        }
     }
 
     /**
-     * 攻撃を行う（具体的な攻撃ロジックは派生クラスで実装）
+     * 攻撃を行う
      */
-    abstract attack(): void;
+    public attack(): void {
+
+    };
 
     /**
      * 敵が生存しているか確認
      */
     public isAlive(): boolean {
         return this._hp > 0;
+    }
+
+    /**
+     * 描画に必要な情報を返す
+     * @returns 
+     */
+    public getState(): EnemyState {
+        return {
+            id: this.id,
+            enemyType: this._enemyType,
+            position: this._position,
+            hp: this._hp
+        };
     }
 }

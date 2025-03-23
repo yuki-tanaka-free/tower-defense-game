@@ -1,0 +1,13 @@
+/* マップ全体のスタイル */
+.map-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+    z-index: 0; /* 一番下に配置 */
+}
+
+/* マス（セル）のスタイル */
+.map-cell {
+    box-sizing: border-box; /* サイズ固定のため追加 */
+}

@@ -1,5 +1,6 @@
 import { Vector2 } from "../../math/Vector2";
 import { Entity } from "../Entity";
+import { TowerState } from "./TowerState";
 
 /**
  * タワーの種類
@@ -22,7 +23,7 @@ export enum TowerAttackType {
 /**
  * 全てのタワーの親クラス
  */
-export abstract class TowerEntity extends Entity {
+export abstract class TowerEntity extends Entity<TowerState> {
     constructor(
         protected _position: Vector2, // 座標
         protected _towerType: TowerType, // タワーの種類
@@ -96,5 +97,20 @@ export abstract class TowerEntity extends Entity {
     /**
      * 行動を起こす
      */
-    public abstract action(): void;
+    public abstract update(deltaTime: number): void;
+
+    /**
+     * 描画に必要な情報を返す
+     * @returns 
+     */
+    public getState(): TowerState {
+        return { 
+            id: this.id,
+            towerType: this._towerType, 
+            buyAmount: this._buyAmount, 
+            updateAmount: this._updateAmount, 
+            saleAmount: this._saleAmount, 
+            position: this._position 
+        }
+    }
 }

@@ -1,9 +1,9 @@
 import './App.css';
-import { Map } from './components/Map';
+import { GameRenderer } from './components/core/GameRenderer';
 
 export default function App() {
   return (
   <>
-    <Map />
+    <GameRenderer />
   </>);
 }
