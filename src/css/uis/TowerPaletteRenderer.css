@@ -1,0 +1,20 @@
+.tower-palette {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #aaa;
+    pointer-events: auto;
+}
+
+.tower-icon {
+    padding: 8px;
+    background-color: #f0f0f0;
+    cursor: grab;
+    text-align: center;
+    border: 1px solid #999;
+}

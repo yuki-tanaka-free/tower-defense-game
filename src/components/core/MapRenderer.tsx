@@ -1,4 +1,4 @@
-import React from "react";
+import { memo, JSX } from "react";
 import { MapChip } from "../../game/map/MapChip";
 import { MapChipType } from "../../game/map/MapChipType";
 import { GameSettings } from "../settings/GameSettings";
@@ -17,7 +17,7 @@ const getMapChipColor = (type: MapChipType): string => {
     }
 };
 
-export const MapRenderer: React.FC = React.memo(() => {
+function MapRenderer(): JSX.Element {
     const mapManager = GameManager.getInstance().mapManager;
     if (!mapManager) return <p>マップデータがありません。</p>
 
@@ -46,4 +46,6 @@ export const MapRenderer: React.FC = React.memo(() => {
             ))}
         </div>
     );
-});
+};
+
+export const MemoizedMapRenderer = memo(MapRenderer);

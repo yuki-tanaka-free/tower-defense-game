@@ -1,7 +1,7 @@
 import { EnemyBaseState } from "../entities/bases/enemy-base/EnemyBaseState";
 import { PlayerBaseState } from "../entities/bases/player-base/PlayerBaseState";
-import { EnemyState } from "../entities/enemys/EnemyState";
-import { TowerState } from "../entities/towers/TowerState";
+import { EnemyState } from "../entities/enemy/EnemyState";
+import { TowerState } from "../entities/tower/TowerState";
 
 export interface GameState {
     playerBase: PlayerBaseState | null;

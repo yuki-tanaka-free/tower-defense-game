@@ -1,9 +1,9 @@
-import React from "react";
+import { memo, JSX } from "react";
 import { GameState } from "../../game/core/GameState"
-import { PlayerBaseRenderer } from "../entities/PlayerBaseRenderer";
-import { EnemyBaseRenderer } from "../entities/EnemyBaseRenderer";
-import { EnemyRenderer } from "../entities/EnemyRenderer";
-import { TowerRenderer } from "../entities/TowerRenderer";
+import { MemoizedPlayerBaseRenderer } from "../entities/PlayerBaseRenderer";
+import { MemoizedEnemyBaseRenderer } from "../entities/EnemyBaseRenderer";
+import { MemoizedEnemyRenderer } from "../entities/EnemyRenderer";
+import { MemoizedTowerRenderer } from "../entities/TowerRenderer";
 import "../../css/core/EntitiesRenderer.css"
 
 interface EntitiesRendererProps {
@@ -14,27 +14,35 @@ interface EntitiesRendererProps {
  * エンティティの描画を行う関数コンポーネント
  * @returns 
  */
-export const EntitiesRenderer = React.memo(({ gameState }: EntitiesRendererProps) => {
-        return (
-            <div className="entities-renderer">
-                {gameState.playerBase && (<PlayerBaseRenderer state={gameState.playerBase} />)}
-                {gameState.enemyBase && (<EnemyBaseRenderer state={gameState.enemyBase} />)}
-                {gameState.towers.map((tower) => (
-                    <TowerRenderer key={tower.id} state={tower} />
-                ))}
-                {gameState.enemies.map((enemy) => (
-                    <EnemyRenderer key={enemy.id} state={enemy} />
-                ))}
-            </div>
-        );
-    },
-    (prevProps, nextProps) => {
-        // gameStateが変わっていなければ再描画しない
-        return (
-            prevProps.gameState.playerBase === nextProps.gameState.playerBase &&
-            prevProps.gameState.enemyBase === nextProps.gameState.enemyBase &&
-            prevProps.gameState.enemies === nextProps.gameState.enemies &&
-            prevProps.gameState.towers === nextProps.gameState.towers
-        );
-    }
-);
+function EntitiesRenderer({ gameState }: EntitiesRendererProps): JSX.Element {
+    return (
+        <div className="entities-renderer">
+            {gameState.playerBase && (<MemoizedPlayerBaseRenderer state={gameState.playerBase} />)}
+            {gameState.enemyBase && (<MemoizedEnemyBaseRenderer state={gameState.enemyBase} />)}
+            {gameState.towers.map((tower) => (
+                <MemoizedTowerRenderer key={tower.id} state={tower} />
+            ))}
+            {gameState.enemies.map((enemy) => (
+                <MemoizedEnemyRenderer key={enemy.id} state={enemy} />
+            ))}
+        </div>
+    );
+}
+
+/**
+ * コンポーネントの再描画条件
+ * @param prevProps 
+ * @param nextProps 
+ * @returns 
+ */
+function areEqual(prevProps: EntitiesRendererProps, nextProps: EntitiesRendererProps): boolean {
+    // gameStateが変わっていなければ再描画しない
+    return (
+        prevProps.gameState.playerBase === nextProps.gameState.playerBase &&
+        prevProps.gameState.enemyBase === nextProps.gameState.enemyBase &&
+        prevProps.gameState.enemies === nextProps.gameState.enemies &&
+        prevProps.gameState.towers === nextProps.gameState.towers
+    );
+}
+
+export const MemoizedEntitiesRenderer = memo(EntitiesRenderer, areEqual);

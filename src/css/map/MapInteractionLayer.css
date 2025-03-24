@@ -1,0 +1,17 @@
+.map-interaction-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+    pointer-events: none;
+}
+
+.map-interaction-cell {
+    width: 32px;
+    height: 32px;
+    pointer-events: auto;
+}
+
+.map-interaction-cell.not-allowed {
+    cursor: not-allowed;
+}

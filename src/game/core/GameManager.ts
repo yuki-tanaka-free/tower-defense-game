@@ -1,4 +1,4 @@
-import { EnemyParameterTable } from "../entities/enemys/EnemyParameterTable";
+import { EnemyParameterTable } from "../entities/enemy/EnemyParameterTable";
 import { EntitiesManager } from "../entities/EntitiesManager";
 import { MapManager } from "../map/MapManager";
 import { WaveManager } from "../wave/WaveManager";

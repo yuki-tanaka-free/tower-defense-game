@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { EntitiesRenderer } from "./EntitiesRenderer";
-import { MapRenderer } from "./MapRenderer";
+import { JSX, useEffect, useState } from "react";
+import { MemoizedEntitiesRenderer } from "./EntitiesRenderer";
+import { MemoizedMapRenderer } from "./MapRenderer";
 import { GameManager } from "../../game/core/GameManager";
 import { GameState } from "../../game/core/GameState";
-import { UIRenderer } from "./UIRenderer";
+import { MemoizedMapInteractionLayer } from "../map/MapInteractionLayer";
+import { MemoizedUIRenderer } from "./UIRenderer";
 import "../../css/core/GameRenderer.css"
 
-export const GameRenderer: React.FC = () => {
+export function GameRenderer(): JSX.Element {
     const [gameState, setGameState] = useState<GameState>({
         enemies: [],
         towers: [],
@@ -34,15 +35,16 @@ export const GameRenderer: React.FC = () => {
         return <p>ゲームをロード中...</p>;
     }
 
-    // MapRendererは静的な描画なので更新を走らせない
-    // EntitiesRendererは動的な描画なのでgameStateを渡して更新させる
+    // MemoizedMapRendererは静的な描画なので更新を走らせない
+    // MemoizedEntitiesRendererは動的な描画なのでgameStateを渡して更新させる
     return (
         <div className="game-renderer">
             <div className="play-area">
-                <MapRenderer />
-                <EntitiesRenderer gameState={gameState} />
+                <MemoizedMapRenderer />
+                <MemoizedEntitiesRenderer gameState={gameState} />
+                <MemoizedMapInteractionLayer />
             </div>
-            <UIRenderer />
+            <MemoizedUIRenderer />
         </div>
     )
 }

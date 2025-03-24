@@ -1,8 +1,8 @@
-import React from "react";
+import { JSX } from "react";
 import { GameManager } from "../../game/core/GameManager";
 import "../../css/uis/WaveControlRenderer.css"
 
-export const WaveControlRenderer: React.FC = () => {
+export function WaveControlRenderer(): JSX.Element {
     const gameManager = GameManager.getInstance();
     const waveManager = gameManager.waveManager;
     // const [isPaused, setPaused] = useState(false);

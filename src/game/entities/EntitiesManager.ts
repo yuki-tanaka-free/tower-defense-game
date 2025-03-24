@@ -2,12 +2,12 @@ import { MapChipType } from "../map/MapChipType";
 import { MapManager } from "../map/MapManager";
 import { EnemyBaseEntity } from "./bases/enemy-base/EnemyBaseEntity";
 import { PlayerBaseEntity } from "./bases/player-base/PlayerBaseEntity";
-import { EnemyEntity } from "./enemys/EnemyEntity";
-import { TowerEntity } from "./towers/TowerEntity";
+import { EnemyEntity } from "./enemy/EnemyEntity";
+import { TowerEntity } from "./tower/TowerEntity";
 import { GameState } from "../core/GameState"
 import { Vector2 } from "../math/Vector2";
-import { EnemyState } from "./enemys/EnemyState";
-import { TowerState } from "./towers/TowerState";
+import { EnemyState } from "./enemy/EnemyState";
+import { TowerState } from "./tower/TowerState";
 import { EntityState } from "./EntityState";
 import { Entity } from "./Entity";
 import { EntityType } from "./EntityType";

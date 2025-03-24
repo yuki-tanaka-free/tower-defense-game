@@ -1,6 +1,6 @@
-import { EnemyEntity } from "../entities/enemys/EnemyEntity";
-import { EnemyParameterTable } from "../entities/enemys/EnemyParameterTable";
-import { EnemyType } from "../entities/enemys/EnemyType";
+import { EnemyEntity } from "../entities/enemy/EnemyEntity";
+import { EnemyParameterTable } from "../entities/enemy/EnemyParameterTable";
+import { EnemyType } from "../entities/enemy/EnemyType";
 import { EntitiesManager } from "../entities/EntitiesManager";
 import { EntityType } from "../entities/EntityType";
 import { MapManager } from "../map/MapManager";

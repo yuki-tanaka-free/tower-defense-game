@@ -16,7 +16,7 @@ interface EnemyParameter {
 export class EnemyParameterTable {
     private static paramTable: Map<EnemyType, Map<number, EnemyParameter>> = new Map()
 
-    private constructor() {} // インスタンス化させない
+    private constructor() {}
 
     /**
      * パラメータを読み込み（初期化時に呼び出す）

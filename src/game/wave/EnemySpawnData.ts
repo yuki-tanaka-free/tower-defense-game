@@ -1,4 +1,4 @@
-import { EnemyType } from "../entities/enemys/EnemyType";
+import { EnemyType } from "../entities/enemy/EnemyType";
 
 /**
  * ウェーブ登録用の敵タイプ

@@ -1,23 +1,23 @@
-import React from "react"
 import { EntityState } from "../../game/entities/EntityState"
 import { GameSettings } from "../settings/GameSettings";
 import "../../css/entities/EntitiyRenderer.css"
+import { JSX, ReactNode } from "react";
 
 interface EntityRendererProps {
     state: EntityState;
     size?: number;
     color?: string;
     borderRadius?: string;
-    children?: React.ReactNode;
+    children?: ReactNode;
 }
 
-export const EntityRenderer: React.FC<EntityRendererProps> = ({
+export function EntityRenderer({
     state,
     size = GameSettings.TILE_SIZE * 0.8,
     color = "white",
     borderRadius = "0%",
     children,
-}) => {
+}: EntityRendererProps): JSX.Element {
     const offset = (GameSettings.TILE_SIZE - size) / 2;
 
     return (

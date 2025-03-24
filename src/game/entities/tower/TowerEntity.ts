@@ -4,18 +4,9 @@ import { EntityType } from "../EntityType";
 import { TowerState } from "./TowerState";
 
 /**
- * タワーの種類
+ * タワーの種類（そのまま攻撃の種類になる）
  */
 export enum TowerType {
-    Tower1,
-    Tower2,
-    Tower3
-}
-
-/**
- * タワーの攻撃タイプ
- */
-export enum TowerAttackType {
     Normal, // 通常攻撃
     DefenseDown, // 防御力低下
     SpeedDown, // 速度低下
@@ -31,11 +22,9 @@ export class TowerEntity extends Entity<TowerState> {
         private _level: number, // タワーのレベル
         private _attackPower: number, // 攻撃力
         private _attackRange: number, // 攻撃範囲
-        private _attackType: TowerAttackType, // 攻撃の種類
-        private _defensePower: number, // 防御力
         private _buyAmount: number, // 購入時の値段
-        private _updateAmount: number, // アップグレードにかかる値段
-        private _saleAmount: number // 売る時の値段
+        private _upgradeAmount: number, // アップグレードにかかる値段
+        private _sellAmount: number // 売る時の値段
     ) {
         super(position);
     }
@@ -55,6 +44,13 @@ export class TowerEntity extends Entity<TowerState> {
     }
 
     /**
+     * タワーのレベル
+     */
+    public get level(): number {
+        return this._level;
+    }
+
+    /**
      * 攻撃力
      */
     public get attackPower(): number {
@@ -69,20 +65,6 @@ export class TowerEntity extends Entity<TowerState> {
     }
 
     /**
-     * 攻撃の種類
-     */
-    public get attackType(): TowerAttackType {
-        return this._attackType;
-    }
-
-    /**
-     * 防御力
-     */
-    public get defensePower(): number {
-        return this._defensePower;
-    }
-
-    /**
      * 購入時の金額
      */
     public get buyAmount(): number {
@@ -92,15 +74,15 @@ export class TowerEntity extends Entity<TowerState> {
     /**
      * アップグレードにかかる値段
      */
-    public get updateAmount(): number {
-        return this._updateAmount;
+    public get upgradeAmount(): number {
+        return this._upgradeAmount;
     }
 
     /**
      * 売る時の値段
      */
-    public get saleAmount(): number {
-        return this._saleAmount;
+    public get sellAmount(): number {
+        return this._sellAmount;
     }
 
     /**
@@ -120,8 +102,8 @@ export class TowerEntity extends Entity<TowerState> {
             towerType: this._towerType,
             level: this._level,
             buyAmount: this._buyAmount, 
-            updateAmount: this._updateAmount, 
-            saleAmount: this._saleAmount, 
+            updateAmount: this._upgradeAmount, 
+            saleAmount: this._sellAmount, 
             position: this.position 
         }));
     }

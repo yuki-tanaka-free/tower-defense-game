@@ -1,4 +1,4 @@
-import { EnemyType } from "../entities/enemys/EnemyType";
+import { EnemyType } from "../entities/enemy/EnemyType";
 import { CsvLoader } from "../utils/CsvLoader";
 import { EnemySpawnData } from "./EnemySpawnData";
 
