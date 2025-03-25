@@ -10,6 +10,7 @@ import "../../css/map/MapInteractionLayer.css"
 
 function MapInteractionLayer(): JSX.Element | null {
     const gameManager = GameManager.getInstance();
+    const player = gameManager.player;
 
     // ゲームのライフタイムが変わった時に更新すればいいだけなので、ダミーのステートを使用
     const [_, forceUpdate] = useState(0);
@@ -42,19 +43,28 @@ function MapInteractionLayer(): JSX.Element | null {
             return;
         }
 
-        const tower = new TowerEntity(
-            position,
-            towerType,
-            level,
-            TowerParameterTable.getAttack(towerType, level),
-            TowerParameterTable.getAttackRange(towerType, level),
-            TowerParameterTable.getAttackCooltime(towerType, level),
-            TowerParameterTable.getBuyAmount(towerType, level),
-            TowerParameterTable.getUpgradeAmount(towerType, level),
-            TowerParameterTable.getSellAmount(towerType, level)
-        );
+        const buyAmount = TowerParameterTable.getBuyAmount(towerType, level);
+        const canBuy = player?.buying(buyAmount);
 
-        entityManager.addEntity(tower);
+        var tower: TowerEntity | null = null;
+        if (canBuy) {
+            // 購入成功
+            tower = new TowerEntity(
+                position,
+                towerType,
+                level,
+                TowerParameterTable.getAttack(towerType, level),
+                TowerParameterTable.getAttackRange(towerType, level),
+                TowerParameterTable.getAttackCooltime(towerType, level),
+                TowerParameterTable.getBuyAmount(towerType, level),
+                TowerParameterTable.getUpgradeAmount(towerType, level),
+                TowerParameterTable.getSellAmount(towerType, level)
+            );
+            entityManager.addEntity(tower);
+        }
+        else {
+            alert("お金が足りません。");
+        }
     };
 
     /**

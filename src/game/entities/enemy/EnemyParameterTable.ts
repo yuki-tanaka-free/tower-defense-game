@@ -8,6 +8,7 @@ interface EnemyParameter {
     defense: number;
     speed: number;
     range: number;
+    bonus: number;
 }
 
 /**
@@ -26,7 +27,7 @@ export class EnemyParameterTable {
         const rows = await CsvLoader.loadCsv("/assets/enemiesParams.csv");
 
         for (const row of rows) {
-            const [enemyTypeStr, levelStr, hpStr, atkStr, atkCoolTimeStr, defStr, spdStr, rngStr] = row.split(",");
+            const [enemyTypeStr, levelStr, hpStr, atkStr, atkCoolTimeStr, defStr, spdStr, rngStr, bnsStr] = row.split(",");
 
             const type = Number(enemyTypeStr) as EnemyType;
             const level = Number(levelStr);
@@ -37,6 +38,7 @@ export class EnemyParameterTable {
                 defense: Number(defStr),
                 speed: Number(spdStr),
                 range: Number(rngStr),
+                bonus: Number(bnsStr)
             };
 
             if (!this.paramTable.has(type)) {
@@ -60,6 +62,7 @@ export class EnemyParameterTable {
             defense: 1,
             speed: 1,
             range: 1,
+            bonus: 100,
         }
     }
 
@@ -121,5 +124,15 @@ export class EnemyParameterTable {
      */
     public static getRange(type: EnemyType, level: number): number {
         return this.getParam(type, level).range;
+    }
+
+    /**
+     * 撃破ボーナス
+     * @param type 
+     * @param level 
+     * @returns 
+     */
+    public static getBonus(type: EnemyType, level: number): number {
+        return this.getParam(type, level).bonus;
     }
 }

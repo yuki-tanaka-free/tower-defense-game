@@ -109,6 +109,11 @@ export class TowerEntity extends Entity<TowerState> {
     }
 
     /**
+     * 死亡時処理
+     */
+    public destroy(): void {}
+
+    /**
      * 攻撃を行う
      * @param enemy 
      */

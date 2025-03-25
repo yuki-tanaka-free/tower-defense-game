@@ -5,6 +5,7 @@ import { GameManager } from "../../game/core/GameManager";
 import "../../css/uis/TowerPaletteRenderer.css"
 import { GameLifecycleState } from "../../game/core/GamelifecycleState";
 import { WaveState } from "../../game/wave/WaveState";
+import { TowerParameterTable } from "../../game/entities/tower/TowerParameterTable";
 
 export function TowerPaletteRenderer(): JSX.Element | null {
     const gameManager = GameManager.getInstance();
@@ -63,7 +64,8 @@ export function TowerPaletteRenderer(): JSX.Element | null {
                     style={{
                         cursor: gameManager.isGamePaused() ? "not-allowed" : "grab",
                     }}>
-                    {TowerType[type as TowerType]}
+                    {TowerType[type as TowerType]}<br />
+                    {'$' + TowerParameterTable.getBuyAmount(type as TowerType, 1)}
                 </div>
             ))}
         </div>

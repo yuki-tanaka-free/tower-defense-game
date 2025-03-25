@@ -1,5 +1,6 @@
 import { EnemyParameterTable } from "../entities/enemy/EnemyParameterTable";
 import { EntitiesManager } from "../entities/EntitiesManager";
+import { TowerParameterTable } from "../entities/tower/TowerParameterTable";
 import { MapManager } from "../map/MapManager";
 import { Player } from "../player/Player";
 import { WaveManager } from "../wave/WaveManager";
@@ -48,15 +49,17 @@ export class GameManager {
     public async init(): Promise<void> {
         if (this.initialized) return;
 
+        // タワーのパラメータをロード
+        await TowerParameterTable.load();
+        // 敵のパラメータをロード
+        await EnemyParameterTable.load();
+
         // マップの生成
         this._mapManager = new MapManager();
         await this._mapManager.loadMap();
 
         // エンティティの生成
         this._entityManager = new EntitiesManager(this._mapManager);
-
-        // 敵のパラメータをロード
-        await EnemyParameterTable.load();
 
         // ウェーブの生成
         this._waveManager = new WaveManager(this._mapManager, this._entityManager);
@@ -76,6 +79,10 @@ export class GameManager {
         this.stop();
         this.initialized = false;
 
+        // 各種パラメータは既に読み込み完了しているため読み込まない
+        // await TowerParameterTable.load();
+        // await EnemyParameterTable.load();
+
         // マネージャーを再生成
 
         // マップは固定のため再生生成の必要はなし
@@ -83,8 +90,6 @@ export class GameManager {
         // await this.mapManager?.loadMap();
 
         this._entityManager = new EntitiesManager(this._mapManager!);
-
-        await EnemyParameterTable.load();
 
         this._waveManager = new WaveManager(this._mapManager!, this._entityManager);
         await this._waveManager.init();

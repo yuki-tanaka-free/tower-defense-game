@@ -1,4 +1,5 @@
 import { ColliderType } from "../../collision/CircleCollider";
+import { GameManager } from "../../core/GameManager";
 import { Vector2 } from "../../math/Vector2";
 import { PlayerBaseEntity } from "../bases/player-base/PlayerBaseEntity";
 import { Entity } from "../Entity";
@@ -31,7 +32,8 @@ export class EnemyEntity extends Entity<EnemyState> {
         private _attackCooltime: number,    // 攻撃の間隔（秒）
         private _defensePower: number,      // 防御力
         private _speed: number,             // 移動速度
-        private _attackRange: number        // 攻撃範囲
+        private _attackRange: number,       // 攻撃範囲
+        private _defeatedBonus: number      // 撃破ボーナス
     ) {
         super(position);
         this._baseSpeed = _speed;
@@ -91,6 +93,13 @@ export class EnemyEntity extends Entity<EnemyState> {
     }
 
     /**
+     * 撃破ボーナス
+     */
+    public get defeatedBonus(): number {
+        return this._defeatedBonus;
+    }
+
+    /**
      * 敵がダメージを受ける
      * @param damage 受けるダメージ量
      */
@@ -99,7 +108,6 @@ export class EnemyEntity extends Entity<EnemyState> {
         const newHp = Math.max(0, this._hp - actualDamage);
         if (newHp !== this._hp) {
             this._hp = newHp;
-            console.log(this._hp);
             this.markDirty();
         }
     }
@@ -186,6 +194,14 @@ export class EnemyEntity extends Entity<EnemyState> {
      */
     public isAlive(): boolean {
         return this._hp > 0;
+    }
+
+    /**
+     * 死亡時処理
+     */
+    public destroy(): void {
+        // 敵を倒したら撃破ボーナスをプレイヤーに付与
+        GameManager.getInstance().player?.addMoney(this._defeatedBonus);
     }
 
     /**

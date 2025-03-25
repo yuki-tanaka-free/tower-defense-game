@@ -1,3 +1,4 @@
+import { GameManager } from "../core/GameManager";
 import { EnemyEntity } from "../entities/enemy/EnemyEntity";
 import { EnemyParameterTable } from "../entities/enemy/EnemyParameterTable";
 import { EnemyType } from "../entities/enemy/EnemyType";
@@ -124,6 +125,9 @@ export class WaveManager {
      * ウェーブ完了後の処理
      */
     public proceedAfterCompletion(): void {
+        // プレイヤーにボーナスを付与
+        GameManager.getInstance().player?.addMoney(this._waves[this.currentWaveIndex].clearBonus);
+
         this.currentWaveIndex++;
         this.startPreparation();
     }
@@ -270,7 +274,8 @@ export class WaveManager {
             EnemyParameterTable.getAttackCooltime(enemyType, level),
             EnemyParameterTable.getDefense(enemyType, level),
             EnemyParameterTable.getSpeed(enemyType, level),
-            EnemyParameterTable.getRange(enemyType, level)
+            EnemyParameterTable.getRange(enemyType, level),
+            EnemyParameterTable.getBonus(enemyType, level)
         );
 
         this.entitiesManager.addEntity(enemy);

@@ -41,6 +41,11 @@ export class PlayerBaseEntity extends Entity<PlayerBaseState> {
     }
 
     /**
+     * 死亡時処理
+     */
+    public destroy(): void {}
+
+    /**
      * 描画に必要な情報を渡す
      */
     public getState(): PlayerBaseState {

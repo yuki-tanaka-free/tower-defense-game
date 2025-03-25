@@ -17,16 +17,28 @@ export class Player {
         return this._money;
     }
 
+    private set money(newMoney: number) {
+        this._money = newMoney
+        this.notifyChanged();
+    }
+
+    /**
+     * お金を増やす
+     * @param salary 
+     */
+    public addMoney(salary: number): void {
+        this.money += salary;
+    }
+
     /**
      * 購入を行う
      * @param price 買いたいものの金額
      * @returns 購入できたか？
      */
     public buying(price: number): boolean {
-        const newMoney = this._money - price;
+        const newMoney = this.money - price;
         if (newMoney < 0) return false; // お金が足りない
-        this._money = newMoney;
-        this.notifyChanged();
+        this.money = newMoney;
         return true;
     }
 

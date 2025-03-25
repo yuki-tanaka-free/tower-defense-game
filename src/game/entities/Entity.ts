@@ -86,6 +86,11 @@ export abstract class Entity<T extends EntityState> {
     public abstract update(deltaTime: number): void;
 
     /**
+     * 死亡時処理
+     */
+    public abstract destroy(): void;
+
+    /**
      * なにかに当たっている時呼ばれる
      * @param other 
      */

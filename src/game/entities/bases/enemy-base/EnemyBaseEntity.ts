@@ -22,6 +22,11 @@ export class EnemyBaseEntity extends Entity<EnemyBaseState> {
     }
 
     /**
+     * 死亡時処理
+     */
+    public destroy(): void {}
+
+    /**
      * 描画に必要な情報を渡す
      */
     public getState(): EnemyBaseState {
