@@ -1,6 +1,7 @@
 import { EnemyParameterTable } from "../entities/enemy/EnemyParameterTable";
 import { EntitiesManager } from "../entities/EntitiesManager";
 import { MapManager } from "../map/MapManager";
+import { Player } from "../player/Player";
 import { WaveManager } from "../wave/WaveManager";
 import { GameLifecycleState } from "./GamelifecycleState";
 
@@ -10,6 +11,7 @@ export class GameManager {
     private _mapManager: MapManager | null = null;
     private _waveManager: WaveManager | null = null;
     private _entityManager: EntitiesManager | null = null;
+    private _player: Player | null = null;
 
     private lastTime: number = 0;
     private initialized: boolean = false;
@@ -60,6 +62,9 @@ export class GameManager {
         this._waveManager = new WaveManager(this._mapManager, this._entityManager);
         await this._waveManager.init();
 
+        // プレイヤーの生成
+        this._player = new Player();
+
         this.initialized = true;
     }
 
@@ -83,6 +88,9 @@ export class GameManager {
 
         this._waveManager = new WaveManager(this._mapManager!, this._entityManager);
         await this._waveManager.init();
+
+        // プレイヤーの生成
+        this._player = new Player();
 
         this.initialized = true;
 
@@ -108,6 +116,10 @@ export class GameManager {
      */
     public get entitiesManager(): EntitiesManager | null {
         return this._entityManager;
+    }
+
+    public get player(): Player | null {
+        return this._player;
     }
 
     /**

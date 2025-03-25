@@ -1,3 +1,4 @@
+import { ColliderType } from "../../collision/CircleCollider";
 import { Vector2 } from "../../math/Vector2";
 import { PlayerBaseEntity } from "../bases/player-base/PlayerBaseEntity";
 import { Entity } from "../Entity";
@@ -35,7 +36,9 @@ export class EnemyEntity extends Entity<EnemyState> {
         super(position);
         this._baseSpeed = _speed;
         this._baseDefense = _defensePower;
-        this.setCollider(this.attackRange);
+
+        this.addCollider(1, ColliderType.Hitbox); // 自分自身の当たり判定
+        this.addCollider(_attackRange, ColliderType.Attack); // 攻撃判定用のコライダー
     }
 
     /**
@@ -96,6 +99,7 @@ export class EnemyEntity extends Entity<EnemyState> {
         const newHp = Math.max(0, this._hp - actualDamage);
         if (newHp !== this._hp) {
             this._hp = newHp;
+            console.log(this._hp);
             this.markDirty();
         }
     }
@@ -188,11 +192,17 @@ export class EnemyEntity extends Entity<EnemyState> {
      * なにかに当たった時呼ばれる
      * @param other 
      */
-    public override onCollisionStay(other: Entity<EntityState>): void {
-        if (other instanceof PlayerBaseEntity) {
-            if (this._cooldownTimer <= 0) {
-                this.attack(other);
-                this._cooldownTimer = this._attackCooltime;
+    public override onCollisionStay(
+        other: Entity<EntityState>,
+        otherColliderType: ColliderType,
+        selfColliderType: ColliderType
+    ): void {
+        if (selfColliderType === ColliderType.Attack) {
+            if (other instanceof PlayerBaseEntity && otherColliderType === ColliderType.Hitbox) {
+                if (this._cooldownTimer <= 0) {
+                    this.attack(other);
+                    this._cooldownTimer = this._attackCooltime;
+                }
             }
         }
     }

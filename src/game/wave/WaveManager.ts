@@ -73,6 +73,14 @@ export class WaveManager {
     }
 
     /**
+     * 現在のウェーブが何番目か返す
+     * @returns 
+     */
+    public getCurrentWave(): number {
+        return this.currentWaveIndex + 1;
+    }
+
+    /**
      * 準備の残り時間を返す
      * @returns 
      */

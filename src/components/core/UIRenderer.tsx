@@ -4,6 +4,7 @@ import { TowerPaletteRenderer } from "../uis/TowerPaletteRenderer";
 import { GameControlRenderer } from "../uis/GameControlRenderer";
 import { GameManager } from "../../game/core/GameManager";
 import "../../css/core/UIRenderer.css"
+import { GameStatusRenderer } from "../uis/GameStatusRenderer";
 
 function UIRenderer(): JSX.Element {
     const [restartKey, setRestartKey] = useState(0);
@@ -15,7 +16,8 @@ function UIRenderer(): JSX.Element {
     return (
         <div className="ui-renderer">
             <WaveControlRenderer key={"Wave" + restartKey} />
-            <GameControlRenderer key={"Game" + restartKey} onRestart={handleRestart}/>
+            <GameControlRenderer key={"GameControl" + restartKey} onRestart={handleRestart}/>
+            <GameStatusRenderer key={"GameState" + restartKey}/>
             <TowerPaletteRenderer />
         </div>
     )

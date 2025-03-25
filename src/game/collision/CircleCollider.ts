@@ -1,9 +1,15 @@
 import { Vector2 } from "../math/Vector2";
 
+export enum ColliderType {
+    Hitbox,
+    Attack
+}
+
 export class CircleCollider {
     constructor(
         public center: Vector2,
-        public radius: number
+        public radius: number,
+        public type: ColliderType
     ){}
 
     /**

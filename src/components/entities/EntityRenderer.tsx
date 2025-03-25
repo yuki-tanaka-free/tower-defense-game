@@ -1,5 +1,5 @@
 import { EntityState } from "../../game/entities/EntityState"
-import { GameSettings } from "../settings/GameSettings";
+import { GameSettings } from "../../game/settings/GameSettings";
 import "../../css/entities/EntitiyRenderer.css"
 import { JSX, ReactNode } from "react";
 

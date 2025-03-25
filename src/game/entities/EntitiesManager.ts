@@ -116,12 +116,9 @@ export class EntitiesManager {
 
         for (const entity of this.entities) {
             entity.update(deltaTime);
-            entity.updateColliderPosition();
 
             if (entity.isDirty) {
                 hasAnyEntityChanged = true;
-                // isDirty は getCachedState() が呼ばれたタイミングで false になる
-                // ここではリセットせず通知トリガーのために使うだけ
             }
         }
 

@@ -1,3 +1,4 @@
+import { ColliderType } from "../../collision/CircleCollider";
 import { Vector2 } from "../../math/Vector2";
 import { EnemyEntity } from "../enemy/EnemyEntity";
 import { Entity } from "../Entity";
@@ -32,7 +33,7 @@ export class TowerEntity extends Entity<TowerState> {
         private _sellAmount: number // 売る時の値段
     ) {
         super(position);
-        this.setCollider(this.attackRange);
+        this.addCollider(this.attackRange, ColliderType.Attack);
     }
 
     /**
@@ -125,11 +126,17 @@ export class TowerEntity extends Entity<TowerState> {
         }
     }
 
-    public override onCollisionStay(other: Entity<EntityState>): void {
-        if (other instanceof EnemyEntity && other.isAlive()) {
-            if (this._cooldownTimer <= 0) {
-                this.attack(other);
-                this._cooldownTimer = this._attackCooltime;
+    public override onCollisionStay(
+        other: Entity<EntityState>,
+        otherColliderType: ColliderType,
+        selfColliderType: ColliderType
+    ): void {
+        if (selfColliderType === ColliderType.Attack) {
+            if (other instanceof EnemyEntity && other.isAlive() && otherColliderType === ColliderType.Hitbox) {
+                if (this._cooldownTimer <= 0) {
+                    this.attack(other);
+                    this._cooldownTimer = this._attackCooltime;
+                }
             }
         }
     }

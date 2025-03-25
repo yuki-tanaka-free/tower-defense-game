@@ -1,4 +1,4 @@
-import { CircleCollider } from "../collision/CircleCollider";
+import { CircleCollider, ColliderType } from "../collision/CircleCollider";
 import { Vector2 } from "../math/Vector2";
 import { EntityState } from "./EntityState";
 import { EntityType } from "./EntityType";
@@ -7,7 +7,7 @@ export abstract class Entity<T extends EntityState> {
     private _id: string = ""; // 一意のID
     private _isDirty: boolean = true; // 更新フラグ
     private _cachedState: T | null = null; // 描画に使用する状態のキャッシュ
-    public collider: CircleCollider | null = null; // 円形コリジョン
+    public colliders: CircleCollider[] = []; // 円形コリジョン
 
     constructor(
         private _position: Vector2 // 座標
@@ -39,19 +39,18 @@ export abstract class Entity<T extends EntityState> {
      */
     public set position(pos: Vector2) {
         if (!this._position.equals(pos)) {
+            this.colliders.forEach(c => c.updatePosition(this.position));
             this._position = pos;
             this.markDirty();
         }
     }
 
-    public setCollider(radius: number): void {
-        this.collider = new CircleCollider(this.position, radius);
-    }
-
-    public updateColliderPosition(): void {
-        if(this.collider) {
-            this.collider.updatePosition(this.position);
-        }
+    /**
+     * コライダーを追加
+     * @param radius 
+     */
+    public addCollider(radius: number, colliderType: ColliderType): void {
+        this.colliders.push(new CircleCollider(this.position, radius, colliderType));
     }
 
     /**
@@ -90,7 +89,11 @@ export abstract class Entity<T extends EntityState> {
      * なにかに当たっている時呼ばれる
      * @param other 
      */
-    public onCollisionStay?(_other: Entity<EntityState>): void {}
+    public onCollisionStay?(
+        _other: Entity<EntityState>, 
+        _otherColliderType: ColliderType, 
+        _selfColliderType: ColliderType,
+    ): void {}
 
     /**
      * 描画に必要な情報を渡す

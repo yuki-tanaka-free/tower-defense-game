@@ -2,7 +2,7 @@ import { memo, JSX, useState, useEffect } from "react";
 import { GameManager } from "../../game/core/GameManager";
 import { TowerEntity, TowerType } from "../../game/entities/tower/TowerEntity";
 import { TowerParameterTable } from "../../game/entities/tower/TowerParameterTable";
-import { GameSettings } from "../settings/GameSettings";
+import { GameSettings } from "../../game/settings/GameSettings";
 import { Vector2 } from "../../game/math/Vector2";
 import { MapChipType } from "../../game/map/MapChipType";
 import { MapChip } from "../../game/map/MapChip";

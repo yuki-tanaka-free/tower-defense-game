@@ -1,7 +1,7 @@
 import { memo, JSX } from "react";
 import { MapChip } from "../../game/map/MapChip";
 import { MapChipType } from "../../game/map/MapChipType";
-import { GameSettings } from "../settings/GameSettings";
+import { GameSettings } from "../../game/settings/GameSettings";
 import { GameManager } from "../../game/core/GameManager";
 import "../../css/core/MapRenderer.css"
 
