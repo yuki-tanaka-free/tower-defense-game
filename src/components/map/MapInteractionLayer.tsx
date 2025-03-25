@@ -1,4 +1,4 @@
-import { memo, JSX } from "react";
+import { memo, JSX, useState, useEffect } from "react";
 import { GameManager } from "../../game/core/GameManager";
 import { TowerEntity, TowerType } from "../../game/entities/tower/TowerEntity";
 import { TowerParameterTable } from "../../game/entities/tower/TowerParameterTable";
@@ -8,9 +8,24 @@ import { MapChipType } from "../../game/map/MapChipType";
 import { MapChip } from "../../game/map/MapChip";
 import "../../css/map/MapInteractionLayer.css"
 
-function MapInteractionLayer(): JSX.Element {
-    const mapManager = GameManager.getInstance().mapManager!;
-    const entityManager = GameManager.getInstance().entityManager!;
+function MapInteractionLayer(): JSX.Element | null {
+    const gameManager = GameManager.getInstance();
+
+    // ゲームのライフタイムが変わった時に更新すればいいだけなので、ダミーのステートを使用
+    const [_, forceUpdate] = useState(0);
+    useEffect(() => {
+        const onGameChanged = () => {
+            forceUpdate((prev) => prev + 1);
+        }
+
+        gameManager.addGameStateChanged(onGameChanged);
+        return () => gameManager.removeGameStateChanged(onGameChanged);
+    }, [gameManager]);
+
+    const mapManager = gameManager.mapManager;
+    const entityManager = gameManager.entitiesManager;
+
+    if (!mapManager || !entityManager) return null;
     const mapData = mapManager.map;
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>, position: Vector2): void => {
@@ -33,6 +48,7 @@ function MapInteractionLayer(): JSX.Element {
             level,
             TowerParameterTable.getAttack(towerType, level),
             TowerParameterTable.getAttackRange(towerType, level),
+            TowerParameterTable.getAttackCooltime(towerType, level),
             TowerParameterTable.getBuyAmount(towerType, level),
             TowerParameterTable.getUpgradeAmount(towerType, level),
             TowerParameterTable.getSellAmount(towerType, level)
@@ -74,6 +90,9 @@ function MapInteractionLayer(): JSX.Element {
                         className="map-interaction-cell"
                         data-x={x}
                         data-y={y}
+                        style={{
+                            cursor: gameManager.isGamePaused() ? "not-allowed" : "default",
+                        }}
                         onDragEnter={(e) => {
                             const chip = mapManager.getMapChip(getPositionFromElement(e.currentTarget));
                             const allowed = isAllowedDropPosition(chip);
@@ -96,6 +115,8 @@ function MapInteractionLayer(): JSX.Element {
                         }}
                         onDrop={(e) => 
                             {
+                                if (gameManager.isGamePaused()) return;
+
                                 e.preventDefault();
                                 e.currentTarget.classList.remove("not-allowed");
 

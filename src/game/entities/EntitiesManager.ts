@@ -4,7 +4,7 @@ import { EnemyBaseEntity } from "./bases/enemy-base/EnemyBaseEntity";
 import { PlayerBaseEntity } from "./bases/player-base/PlayerBaseEntity";
 import { EnemyEntity } from "./enemy/EnemyEntity";
 import { TowerEntity } from "./tower/TowerEntity";
-import { GameState } from "../core/GameState"
+import { EntitiesState } from "./EntitiesState";
 import { Vector2 } from "../math/Vector2";
 import { EnemyState } from "./enemy/EnemyState";
 import { TowerState } from "./tower/TowerState";
@@ -13,12 +13,13 @@ import { Entity } from "./Entity";
 import { EntityType } from "./EntityType";
 import { PlayerBaseState } from "./bases/player-base/PlayerBaseState";
 import { EnemyBaseState } from "./bases/enemy-base/EnemyBaseState";
+import { CollisionManager } from "../collision/CollisionManager";
 
 export class EntitiesManager {
     private entities: Entity<EntityState>[] = [];
+    private changedListeners = new Set<() => void>();
 
     constructor(_mapManager: MapManager) {
-        // 生成時にマップマネージャーの情報を元に基地を生成
         _mapManager.map.forEach(row => {
             row.forEach(chip => {
                 const position = chip.position;
@@ -35,26 +36,63 @@ export class EntitiesManager {
     }
 
     /**
-     * エネミーの生成位置を返す
+     * エネミーのスポーン場所を取得
      * @returns 
      */
     public getEnemySpawnPosition(): Vector2 {
         const enemyBase = this.entities.find(e => e.getEntityType === EntityType.EnemyBase);
         if (enemyBase) return enemyBase.position;
-        console.error("エネミーの基地がありません。")
+        console.error("エネミーの基地がありません。");
         return Vector2.zero();
     }
 
     /**
-     * エンティティを追加する
-     * @param enemy 
+     * エンティティを追加
+     * @param entity 
      */
     public addEntity(entity: Entity<EntityState>): void {
         this.entities.push(entity);
+        this.notifyChanged(); // エンティティの追加時にも通知
     }
 
     /**
-     * 指定したエンティティの数を取得
+     * エンティティを削除
+     * @param entity 
+     */
+    public removeEntity(entity: Entity<EntityState>): void {
+        const index = this.entities.indexOf(entity);
+        if (index >= 0) {
+            this.entities.splice(index, 1);
+            this.notifyChanged(); // エンティティの削除時にも通知
+        }
+    }
+
+    /**
+     * エンティティに変化があった時呼ばれるイベントを追加
+     * @param listener 
+     */
+    public addOnChangedListener(listener: () => void): void {
+        this.changedListeners.add(listener);
+    }
+
+    /**
+     * エンティティに変化があった時呼ばれるイベントを削除
+     * @param listener 
+     */
+    public removeOnChangedListener(listener: () => void): void {
+        this.changedListeners.delete(listener);
+    }
+
+    /**
+     * エンティティに変化があった時呼ばれるイベントに通知
+     */
+    private notifyChanged(): void {
+        this.changedListeners.forEach(listener => listener());
+    }
+
+    /**
+     * 指定したエンティティの現在の数を取得
+     * @param type 
      * @returns 
      */
     public getEntityCount(type: EntityType): number {
@@ -62,7 +100,7 @@ export class EntitiesManager {
     }
 
     /**
-     * 変換処理を共通化
+     * 指定したエンティティの配列を返す
      * @param type 
      * @returns 
      */
@@ -71,32 +109,49 @@ export class EntitiesManager {
     }
 
     /**
-     * 更新処理
-     * @param deltaTime 
+     * 更新処理（状態が変更されたときのみ通知）
      */
-    public update(deltaTime: number) {
+    public update(deltaTime: number): void {
+        let hasAnyEntityChanged = false;
+
         for (const entity of this.entities) {
             entity.update(deltaTime);
+            entity.updateColliderPosition();
+
+            if (entity.isDirty) {
+                hasAnyEntityChanged = true;
+                // isDirty は getCachedState() が呼ばれたタイミングで false になる
+                // ここではリセットせず通知トリガーのために使うだけ
+            }
         }
 
-        this.entities = this.entities.filter(e => {
-            if (e.getEntityType === EntityType.Enemy) {
-                return (e as EnemyEntity).isAlive();
+        // 当たり判定
+        CollisionManager.checkCollisions(this.entities);
+
+        // 死亡した敵を removeEntity 経由で削除（内部で notifyChanged() が走る）
+        for (const enemy of this.getEntitiesOfType<EnemyEntity>(EntityType.Enemy)) {
+            if (!enemy.isAlive()) {
+                this.removeEntity(enemy);
+                hasAnyEntityChanged = true; // 念のため明示
             }
-            return true;
-        });
+        }
+
+        // 少なくとも1体でも変更があった場合のみ通知
+        if (hasAnyEntityChanged) {
+            this.notifyChanged();
+        }
     }
 
     /**
-     * 描画で使用する情報を返す
+     * 各種エンティティの情報を返す
      * @returns 
      */
-    public getState(): GameState {
+    public getState(): EntitiesState {
         let playerBase: PlayerBaseState | null = null;
         let enemyBase: EnemyBaseState | null = null;
         const enemies: EnemyState[] = [];
         const towers: TowerState[] = [];
-    
+
         for (const e of this.entities) {
             switch (e.getEntityType) {
                 case EntityType.PlayerBase:
@@ -113,7 +168,7 @@ export class EntitiesManager {
                     break;
             }
         }
-    
+
         return {
             playerBase,
             enemyBase,

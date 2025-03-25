@@ -2,7 +2,7 @@ import { EnemyParameterTable } from "../entities/enemy/EnemyParameterTable";
 import { EntitiesManager } from "../entities/EntitiesManager";
 import { MapManager } from "../map/MapManager";
 import { WaveManager } from "../wave/WaveManager";
-import { GameState, GameStateUtil } from "./GameState";
+import { GameLifecycleState } from "./GamelifecycleState";
 
 export class GameManager {
     private static _instance: GameManager | null = null;
@@ -10,15 +10,22 @@ export class GameManager {
     private _mapManager: MapManager | null = null;
     private _waveManager: WaveManager | null = null;
     private _entityManager: EntitiesManager | null = null;
-    
+
     private lastTime: number = 0;
-    private isRunning: boolean = false;
-    private updateCallback: ((state: GameState) => void) | null = null;
     private initialized: boolean = false;
 
-    private prevState: GameState | null = null;
+    private lifecycleState: GameLifecycleState = GameLifecycleState.NotStarted;
+    private gameStateListeners: Set<(state: GameLifecycleState) => void> = new Set();
 
-    private constructor() {}
+    // ゲームの状態毎に呼び出すゲームループを切り替える
+    private gameLoopHandlers: Record<GameLifecycleState, (dt: number) => void> = {
+        [GameLifecycleState.NotStarted]: this.noopLoop,
+        [GameLifecycleState.Running]: this.runningLoop,
+        [GameLifecycleState.Paused]: this.pausedLoop,
+        [GameLifecycleState.Stopped]: this.noopLoop,
+    }
+
+    private constructor() { }
 
     /**
      * インスタンス取得
@@ -36,7 +43,7 @@ export class GameManager {
      * @param updateCallback 
      * @returns 
      */
-    public async init(updateCallback: (state: GameState) => void): Promise<void> {
+    public async init(): Promise<void> {
         if (this.initialized) return;
 
         // マップの生成
@@ -53,11 +60,33 @@ export class GameManager {
         this._waveManager = new WaveManager(this._mapManager, this._entityManager);
         await this._waveManager.init();
 
-        this.lastTime = performance.now();
-        this.isRunning = false;
-        this.updateCallback = updateCallback;
         this.initialized = true;
-        this.prevState = this._entityManager.getState();
+    }
+
+    /**
+     * リスタート
+     */
+    public async restart(): Promise<void> {
+        // 一旦停止
+        this.stop();
+        this.initialized = false;
+
+        // マネージャーを再生成
+
+        // マップは固定のため再生生成の必要はなし
+        // this._mapManager = new MapManager();
+        // await this.mapManager?.loadMap();
+
+        this._entityManager = new EntitiesManager(this._mapManager!);
+
+        await EnemyParameterTable.load();
+
+        this._waveManager = new WaveManager(this._mapManager!, this._entityManager);
+        await this._waveManager.init();
+
+        this.initialized = true;
+
+        this.start();
     }
 
     /**
@@ -77,30 +106,134 @@ export class GameManager {
     /**
      * エンティティマネージャー
      */
-    public get entityManager(): EntitiesManager | null {
+    public get entitiesManager(): EntitiesManager | null {
         return this._entityManager;
+    }
+
+    /**
+     * 現在のゲーム状態を返す
+     * @returns 
+     */
+    public getLifecycleState(): GameLifecycleState {
+        return this.lifecycleState;
+    }
+
+    private setLifecycleState(state: GameLifecycleState): void {
+        if (this.getLifecycleState() !== state) {
+            console.log("ゲームの状態が変化:", GameLifecycleState[this.getLifecycleState()], "→", GameLifecycleState[state]);
+            this.lifecycleState = state;
+            this.notifyGameStateChanged();
+        }
+    }
+
+    /**
+     * ゲーム状態変更時に呼ばれるイベントの追加
+     * @param listener 
+     */
+    public addGameStateChanged(listener: (state: GameLifecycleState) => void): void {
+        this.gameStateListeners.add(listener);
+    }
+
+    /**
+     * ゲーム状態変更時に呼ばれるイベントの削除
+     * @param listener 
+     */
+    public removeGameStateChanged(listener: (state: GameLifecycleState) => void): void {
+        this.gameStateListeners.delete(listener);
+    }
+
+    /**
+     * ゲーム状態変更を通知
+     */
+    private notifyGameStateChanged(): void {
+        for (const listener of this.gameStateListeners) {
+            listener(this.lifecycleState);
+        }
     }
 
     /**
      * ゲームループ開始
      */
     public start() {
-        this.isRunning = true;
+        this.setLifecycleState(GameLifecycleState.Running);
+        this.lastTime = performance.now();
+
+        // ウェーブの準備期間へ移行
+        this._waveManager?.startPreparation();
+
         requestAnimationFrame(this.gameLoop);
+    }
+
+    /**
+     * ゲームを一時停止
+     */
+    public pause() {
+        this.setLifecycleState(GameLifecycleState.Paused);
     }
 
     /**
      * ゲーム再開
      */
     public resume() {
-        this.isRunning = true;
+        this.setLifecycleState(GameLifecycleState.Running);
+    }
+
+    /**
+     * 一時停止と再開を切り替え
+     */
+    public togglePause() {
+        this.isGamePaused() ? this.resume() : this.pause();
+    }
+
+    /**
+     * ゲーム進行中か？
+     */
+    public isGameRunning(): boolean {
+        return this.lifecycleState === GameLifecycleState.Running;
+    }
+
+    /**
+     * ゲームがポーズ中か？
+     * @returns 
+     */
+    public isGamePaused(): boolean {
+        return this.lifecycleState === GameLifecycleState.Paused;
     }
 
     /**
      * ゲームの停止
      */
     public stop() {
-        this.isRunning = false;
+        if (this.lifecycleState === GameLifecycleState.Running || this.lifecycleState === GameLifecycleState.Paused) {
+            this.setLifecycleState(GameLifecycleState.Stopped);
+        }
+    }
+
+    /**
+     * ゲーム進行中に実行されるゲームループ
+     * @param dt 
+     */
+    private runningLoop(dt: number) {
+        this._waveManager?.update(dt);
+        this._entityManager?.update(dt);
+
+        requestAnimationFrame(this.gameLoop);
+    }
+
+    /**
+     * ゲーム停止中に実行されるゲームループ
+     * @param _ 
+     */
+    private pausedLoop(_: number) {
+        requestAnimationFrame(this.gameLoop); // ポーズ中はループ継続のみ
+    }
+
+    /**
+     * ゲームループを実行しない
+     * @param _ 
+     */
+    private noopLoop(_: number) {
+        // なにもしない（StoppedやNotStarted時）
     }
 
     /**
@@ -109,30 +242,10 @@ export class GameManager {
      * @returns 
      */
     private gameLoop = (currentTime: number) => {
-        if (!this.isRunning) return;
-
         const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
 
-        if (this._waveManager) {
-            this._waveManager.update(deltaTime);
-        }
-
-        if (this._entityManager) {
-            this._entityManager.update(deltaTime);
-
-            // 状態更新の通知
-            if (this.updateCallback) {
-                const newState = this._entityManager.getState();
-
-                // 変更があれば画面に更新を通知
-                if (GameStateUtil.hasChanged(this.prevState, newState)) {
-                    this.prevState = newState;
-                    this.updateCallback(newState);
-                }
-            }
-        }
-
-        requestAnimationFrame(this.gameLoop);
+        const handler = this.gameLoopHandlers[this.lifecycleState];
+        handler.call(this, deltaTime);
     }
 }

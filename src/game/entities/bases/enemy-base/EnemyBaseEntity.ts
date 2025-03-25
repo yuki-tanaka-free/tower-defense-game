@@ -15,7 +15,7 @@ export class EnemyBaseEntity extends Entity<EnemyBaseState> {
     }
 
     /**
-     * 行動を起こす
+     * 更新処理
      */
     public update(_deltaTime: number): void {
         

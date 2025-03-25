@@ -22,10 +22,22 @@ export class PlayerBaseEntity extends Entity<PlayerBaseState> {
     }
 
     /**
-     * 行動を起こす
+     * 更新処理
      */
     public update(_deltaTime: number): void {
 
+    }
+
+    /**
+     * 敵がダメージを受ける
+     * @param damage 受けるダメージ量
+     */
+    public takeDamage(damage: number): void {
+        const newHp = Math.max(0, this._hp - damage);
+        if (newHp !== this._hp) {
+            this._hp = newHp;
+            this.markDirty();
+        }
     }
 
     /**

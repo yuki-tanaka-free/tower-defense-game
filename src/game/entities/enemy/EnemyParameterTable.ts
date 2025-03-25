@@ -4,6 +4,7 @@ import { EnemyType } from "./EnemyType";
 interface EnemyParameter {
     hp: number;
     attack: number;
+    attackCooltime: number;
     defense: number;
     speed: number;
     range: number;
@@ -25,13 +26,14 @@ export class EnemyParameterTable {
         const rows = await CsvLoader.loadCsv("/assets/enemiesParams.csv");
 
         for (const row of rows) {
-            const [enemyTypeStr, levelStr, hpStr, atkStr, defStr, spdStr, rngStr] = row.split(",");
+            const [enemyTypeStr, levelStr, hpStr, atkStr, atkCoolTimeStr, defStr, spdStr, rngStr] = row.split(",");
 
             const type = Number(enemyTypeStr) as EnemyType;
             const level = Number(levelStr);
             const param: EnemyParameter = {
                 hp: Number(hpStr),
                 attack: Number(atkStr),
+                attackCooltime: Number(atkCoolTimeStr),
                 defense: Number(defStr),
                 speed: Number(spdStr),
                 range: Number(rngStr),
@@ -54,6 +56,7 @@ export class EnemyParameterTable {
         return this.paramTable.get(type)?.get(level) ?? {
             hp: 1,
             attack: 1,
+            attackCooltime: 1,
             defense: 1,
             speed: 1,
             range: 1,
@@ -78,6 +81,16 @@ export class EnemyParameterTable {
      */
     public static getAttack(type: EnemyType, level: number): number {
         return this.getParam(type, level).attack;
+    }
+
+    /**
+     * 攻撃の間隔（秒）
+     * @param type 
+     * @param level 
+     * @returns 
+     */
+    public static getAttackCooltime(type: EnemyType, level: number): number {
+        return this.getParam(type, level).attackCooltime;
     }
     
     /**

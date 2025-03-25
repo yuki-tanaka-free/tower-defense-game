@@ -1,17 +1,17 @@
-import { EnemyBaseState } from "../entities/bases/enemy-base/EnemyBaseState";
-import { PlayerBaseState } from "../entities/bases/player-base/PlayerBaseState";
-import { EnemyState } from "../entities/enemy/EnemyState";
-import { TowerState } from "../entities/tower/TowerState";
+import { EnemyBaseState } from "./bases/enemy-base/EnemyBaseState";
+import { PlayerBaseState } from "./bases/player-base/PlayerBaseState";
+import { EnemyState } from "./enemy/EnemyState";
+import { TowerState } from "./tower/TowerState";
 
-export interface GameState {
+export interface EntitiesState {
     playerBase: PlayerBaseState | null;
     enemyBase: EnemyBaseState | null;
     enemies: EnemyState[];
     towers: TowerState[];
 }
 
-export class GameStateUtil {
-    static hasChanged(prev: GameState | null, next: GameState): boolean {
+export class EntitiesStateUtil {
+    static hasChanged(prev: EntitiesState | null, next: EntitiesState): boolean {
         if (!prev) return true;
 
         // console.log("playerBase same?", prev.playerBase === next.playerBase)

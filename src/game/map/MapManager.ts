@@ -132,7 +132,8 @@ export class MapManager {
             const { pos, path } = queue.shift()!;
 
             if (pos.equals(goal)) {
-                return path;
+                // ゴール（プレイヤー基地）には乗らず、一歩手前で止める
+                return path.slice(0, -1);
             }
 
             for (const dir of dirs) {

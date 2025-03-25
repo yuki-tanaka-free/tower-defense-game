@@ -4,6 +4,7 @@ import { TowerType } from "./TowerEntity";
 interface TowerParameter {
     attack: number;
     attackRange: number;
+    attackCooltime: number;
     buyAmount: number;
     upgradeAmount: number;
     sellAmount: number;
@@ -25,13 +26,14 @@ export class TowerParameterTable {
         const rows = await CsvLoader.loadCsv("/assets/towersParams.csv");
 
         for (const row of rows) {
-            const [towerTypeStr, levelStr, atkStr, rangeStr, buyStr, upStr, sellStr] = row.split(",");
+            const [towerTypeStr, levelStr, atkStr, rangeStr, atkCoolTimeStr, buyStr, upStr, sellStr] = row.split(",");
 
             const type = Number(towerTypeStr) as TowerType;
             const level = Number(levelStr);
             const param: TowerParameter = {
                 attack: Number(atkStr),
                 attackRange: Number(rangeStr),
+                attackCooltime: Number(atkCoolTimeStr),
                 buyAmount: Number(buyStr),
                 upgradeAmount: Number(upStr),
                 sellAmount: Number(sellStr),
@@ -51,6 +53,7 @@ export class TowerParameterTable {
         return this.paramTable.get(type)?.get(level) ?? {
             attack: 1,
             attackRange: 1,
+            attackCooltime: 1,
             buyAmount: 0,
             upgradeAmount: 0,
             sellAmount: 0,
@@ -75,6 +78,16 @@ export class TowerParameterTable {
      */
     public static getAttackRange(type: TowerType, level: number): number {
         return this.getParam(type, level).attackRange;
+    }
+
+    /**
+     * 攻撃の間隔（秒）
+     * @param type 
+     * @param level 
+     * @returns 
+     */
+    public static getAttackCooltime(type: TowerType, level: number): number {
+        return this.getParam(type, level).attackCooltime;
     }
 
     /**
