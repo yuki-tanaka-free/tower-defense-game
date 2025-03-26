@@ -130,10 +130,6 @@ export class WaveManager {
     public startPreparation(): void {
         this.preparationTimer = this.defaultPreparationDuration;
         this.waveState = WaveState.Preparing;
-
-        if (this.autoStartEnabled) {
-            this.startNextWave();
-        }
     }
 
     /**
