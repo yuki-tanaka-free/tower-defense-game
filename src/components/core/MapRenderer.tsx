@@ -33,7 +33,6 @@ function MapRenderer(): JSX.Element {
     if (!mapData || mapData.length === 0) {
         return <p>マップデータがありません。</p>;
     }
-
     return (
         <div
             className="map-container"

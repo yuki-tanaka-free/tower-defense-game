@@ -39,7 +39,7 @@ export function EntitiesRenderer(): JSX.Element | null {
         }
     }, [entitiesManager, gameManager]);
 
-    if (!entitiesState) return null; // ← レンダリング前にガード
+    if (!entitiesState) return null;
 
     return (
         <div className="entities-renderer">
