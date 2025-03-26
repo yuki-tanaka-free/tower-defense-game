@@ -7,4 +7,7 @@ import { EnemyType } from "./EnemyType";
 export interface EnemyState extends EntityState {
     enemyType: EnemyType;
     hp: number;
+    isDamaged: boolean;
+    isSlowed: boolean;
+    isDefenseDown: boolean;
 }

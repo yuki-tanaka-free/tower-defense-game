@@ -23,6 +23,10 @@ export class EnemyEntity extends Entity<EnemyState> {
     private _defenseDownTimer: number = 0; // 防御力低下の残り時間
     private _defenseDownRate: number = 0.5; // 防御力低下率（50%）
 
+    private _isDamaged: boolean = false;
+    private _damageEffectTimer: number = 0;
+    private readonly _damageEffectDuration = 0.2; // 0.2秒間フラッシュ
+
     constructor(
         position: Vector2,                  // 座標
         private _enemyPath: Vector2[],      // エネミーの経路
@@ -39,7 +43,7 @@ export class EnemyEntity extends Entity<EnemyState> {
         this._baseSpeed = _speed;
         this._baseDefense = _defensePower;
 
-        this.addCollider(1, ColliderType.Hitbox); // 自分自身の当たり判定
+        this.addCollider(0.5, ColliderType.Hitbox); // 自分自身の当たり判定
         this.addCollider(_attackRange, ColliderType.Attack); // 攻撃判定用のコライダー
     }
 
@@ -108,6 +112,8 @@ export class EnemyEntity extends Entity<EnemyState> {
         const newHp = Math.max(0, this._hp - actualDamage);
         if (newHp !== this._hp) {
             this._hp = newHp;
+            this._isDamaged = true;
+            this._damageEffectTimer = this._damageEffectDuration;
             this.markDirty();
         }
     }
@@ -137,18 +143,20 @@ export class EnemyEntity extends Entity<EnemyState> {
     }
 
     /**
-     * 更新処理
+     * 攻撃のクールタイムを処理
      * @param deltaTime 
      */
-    public update(deltaTime: number): void {
-        if (this._enemyPath.length === 0 || this._pathIndex >= this._enemyPath.length) return;
-
-        // 攻撃のクールダウン
+    private updateCooldown(deltaTime: number): void {
         if (this._cooldownTimer > 0) {
             this._cooldownTimer -= deltaTime;
         }
-
-        // スロー解除処理
+    }
+    
+    /**
+     * 各種デバフ効果の処理
+     * @param deltaTime 
+     */
+    private updateDebuffs(deltaTime: number): void {
         if (this._slowTimer > 0) {
             this._slowTimer -= deltaTime;
             if (this._slowTimer <= 0) {
@@ -156,30 +164,67 @@ export class EnemyEntity extends Entity<EnemyState> {
                 this.markDirty();
             }
         }
-
-        // 防御デバフ解除処理
+    
         if (this._defenseDownTimer > 0) {
             this._defenseDownTimer -= deltaTime;
-
             if (this._defenseDownTimer <= 0) {
                 this._defensePower = this._baseDefense;
                 this.markDirty();
             }
         }
-
+    }
+    
+    /**
+     * ダメージエフェクトの処理
+     * @param deltaTime 
+     */
+    private updateDamageEffect(deltaTime: number): void {
+        if (this._isDamaged) {
+            this._damageEffectTimer -= deltaTime;
+            if (this._damageEffectTimer <= 0) {
+                this._isDamaged = false;
+                this.markDirty();
+            }
+        }
+    }
+    
+    /**
+     * 移動処理
+     * @param deltaTime 
+     * @returns 
+     */
+    private updateMovement(deltaTime: number): void {
+        if (this._enemyPath.length === 0 || this._pathIndex >= this._enemyPath.length) return;
+    
         const targetPos = this._enemyPath[this._pathIndex];
         const direction = targetPos.sub(this.position);
         const distance = direction.magnitude();
-
+    
         if (distance < 0.05) {
-            // 到達とみなして次へ
             this.position = targetPos;
             this._pathIndex++;
-        }
-        else {
+        } else {
             const moveVector = direction.normalize().mul(this._speed * deltaTime);
             this.position = this.position.add(moveVector);
         }
+    }
+
+    /**
+     * 更新処理
+     * @param deltaTime 
+     */
+    public update(deltaTime: number): void {
+        this.updateCooldown(deltaTime);
+        this.updateDebuffs(deltaTime);
+        this.updateDamageEffect(deltaTime);
+        this.updateMovement(deltaTime);
+    }
+
+    /**
+     * 当たり判定後に呼ばれる更新処理
+     */
+    public lateUpdate(_deltaTime: number): void {
+        
     }
 
     /**
@@ -232,7 +277,10 @@ export class EnemyEntity extends Entity<EnemyState> {
             id: this.id,
             enemyType: this._enemyType,
             position: this.position,
-            hp: this._hp
+            hp: this._hp,
+            isDamaged: this._isDamaged,
+            isSlowed: this._slowTimer > 0,
+            isDefenseDown: this._defenseDownTimer > 0
         }));
     }
 }

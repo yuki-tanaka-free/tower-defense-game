@@ -6,6 +6,8 @@ import { Player } from "../player/Player";
 import { WaveManager } from "../wave/WaveManager";
 import { GameLifecycleState } from "./GamelifecycleState";
 
+type GameLifecycleListener = (state: GameLifecycleState) => void;
+
 export class GameManager {
     private static _instance: GameManager | null = null;
 
@@ -18,13 +20,16 @@ export class GameManager {
     private initialized: boolean = false;
 
     private lifecycleState: GameLifecycleState = GameLifecycleState.NotStarted;
-    private gameStateListeners: Set<(state: GameLifecycleState) => void> = new Set();
+    private gameStateListeners: Set<GameLifecycleListener> = new Set();
 
     // ゲームの状態毎に呼び出すゲームループを切り替える
     private gameLoopHandlers: Record<GameLifecycleState, (dt: number) => void> = {
         [GameLifecycleState.NotStarted]: this.noopLoop,
         [GameLifecycleState.Running]: this.runningLoop,
         [GameLifecycleState.Paused]: this.pausedLoop,
+        [GameLifecycleState.Restarting]: this.pausedLoop,
+        [GameLifecycleState.GameOver]: this.pausedLoop,
+        [GameLifecycleState.GameClear]: this.pausedLoop,
         [GameLifecycleState.Stopped]: this.noopLoop,
     }
 
@@ -78,6 +83,8 @@ export class GameManager {
         // 一旦停止
         this.stop();
         this.initialized = false;
+
+        this.setLifecycleState(GameLifecycleState.Restarting);
 
         // 各種パラメータは既に読み込み完了しているため読み込まない
         // await TowerParameterTable.load();
@@ -147,7 +154,7 @@ export class GameManager {
      * ゲーム状態変更時に呼ばれるイベントの追加
      * @param listener 
      */
-    public addGameStateChanged(listener: (state: GameLifecycleState) => void): void {
+    public addGameStateChanged(listener: GameLifecycleListener): void {
         this.gameStateListeners.add(listener);
     }
 
@@ -155,7 +162,7 @@ export class GameManager {
      * ゲーム状態変更時に呼ばれるイベントの削除
      * @param listener 
      */
-    public removeGameStateChanged(listener: (state: GameLifecycleState) => void): void {
+    public removeGameStateChanged(listener: GameLifecycleListener): void {
         this.gameStateListeners.delete(listener);
     }
 
@@ -233,6 +240,22 @@ export class GameManager {
     private runningLoop(dt: number) {
         this._waveManager?.update(dt);
         this._entityManager?.update(dt);
+
+        // ゲームオーバー判定
+        const playerBase = this._entityManager?.playerBase;
+        if (playerBase && playerBase.getState().hp <= 0) {
+            console.log("ゲームオーバー: プレイヤー基地のHPが0になりました");
+            this.setLifecycleState(GameLifecycleState.GameOver);
+        }
+
+        // ゲームクリア判定
+        const waveCompleted = this._waveManager?.isAllWaveCompleted();
+        const noEnemies = this._entityManager && !this._entityManager.hasLivingEnemies();
+
+        if (waveCompleted && noEnemies) {
+            console.log("ゲームクリア: すべての敵を倒し、ウェーブも完了しました！");
+            this.setLifecycleState(GameLifecycleState.GameClear);
+        }
 
         requestAnimationFrame(this.gameLoop);
     }

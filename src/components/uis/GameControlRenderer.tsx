@@ -1,25 +1,15 @@
-import { JSX, useEffect, useState } from "react";
+import { JSX } from "react";
 import { GameManager } from "../../game/core/GameManager";
 import { GameLifecycleState } from "../../game/core/GamelifecycleState";
 import "../../css/uis/GameControlRenderer.css"
 
-interface Props {
+interface GameControlRendererProps {
+    gameState: GameLifecycleState;
     onRestart: () => void;
 }
 
-export function GameControlRenderer({ onRestart }: Props): JSX.Element {
+export function GameControlRenderer({ gameState, onRestart }: GameControlRendererProps): JSX.Element {
     const gameManager = GameManager.getInstance();
-    
-    const [lifecycleState, setLifecycleState] = useState(gameManager.getLifecycleState());
-
-    useEffect(() => {
-        const handleGameStateChange = (state: GameLifecycleState) => {
-            setLifecycleState(state);
-        }
-
-        gameManager.addGameStateChanged(handleGameStateChange);
-        return () => gameManager.removeGameStateChanged(handleGameStateChange);
-    }, []);
 
     const handleStartGame = () => {
         gameManager.start();
@@ -29,8 +19,8 @@ export function GameControlRenderer({ onRestart }: Props): JSX.Element {
         gameManager.togglePause();
     }
 
-    const isStarted = lifecycleState !== GameLifecycleState.NotStarted;
-    const isPaused = lifecycleState === GameLifecycleState.Paused;
+    const isStarted = gameState !== GameLifecycleState.NotStarted;
+    const isPaused = gameState === GameLifecycleState.Paused;
 
     return (
         <div className="game-control-renderer">

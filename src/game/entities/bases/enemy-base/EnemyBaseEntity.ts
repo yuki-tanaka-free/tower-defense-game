@@ -22,6 +22,13 @@ export class EnemyBaseEntity extends Entity<EnemyBaseState> {
     }
 
     /**
+     * 当たり判定後に呼ばれる更新処理
+     */
+    public lateUpdate(_deltaTime: number): void {
+        
+    }
+
+    /**
      * 死亡時処理
      */
     public destroy(): void {}

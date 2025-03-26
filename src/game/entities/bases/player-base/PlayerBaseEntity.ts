@@ -1,3 +1,4 @@
+import { ColliderType } from "../../../collision/CircleCollider";
 import { Vector2 } from "../../../math/Vector2";
 import { Entity } from "../../Entity";
 import { EntityType } from "../../EntityType";
@@ -12,6 +13,7 @@ export class PlayerBaseEntity extends Entity<PlayerBaseState> {
         protected _hp: number // 体力
     ) {
         super(position);
+        this.addCollider(0.5, ColliderType.Hitbox);
     }
 
     /**
@@ -25,7 +27,13 @@ export class PlayerBaseEntity extends Entity<PlayerBaseState> {
      * 更新処理
      */
     public update(_deltaTime: number): void {
+    }
 
+    /**
+     * 当たり判定後に呼ばれる更新処理
+     */
+    public lateUpdate(_deltaTime: number): void {
+        
     }
 
     /**

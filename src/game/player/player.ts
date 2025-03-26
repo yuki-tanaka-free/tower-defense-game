@@ -7,7 +7,7 @@ export class Player {
     private changedListeners = new Set<(state: PlayerState) => void>();
     
     constructor(
-        private _money: number = 500 // 初期の所持金
+        private _money: number = 1000 // 初期の所持金
     ) {}
 
     /**

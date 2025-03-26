@@ -4,22 +4,16 @@ import { EnemyEntity } from "../enemy/EnemyEntity";
 import { Entity } from "../Entity";
 import { EntityState } from "../EntityState";
 import { EntityType } from "../EntityType";
+import { TowerParameterTable } from "./TowerParameterTable";
 import { TowerState } from "./TowerState";
-
-/**
- * タワーの種類（そのまま攻撃の種類になる）
- */
-export enum TowerType {
-    Normal, // 通常攻撃
-    DefenseDown, // 防御力低下
-    SpeedDown, // 速度低下
-}
+import { TowerType } from "./TowerType";
 
 /**
  * タワークラス
  */
 export class TowerEntity extends Entity<TowerState> {
     private _cooldownTimer: number = 0; // 攻撃クールダウンタイマー
+    private _collisionEnemies: EnemyEntity[] = [];
 
     constructor(
         position: Vector2,             // 座標
@@ -113,6 +107,47 @@ export class TowerEntity extends Entity<TowerState> {
      */
     public destroy(): void {}
 
+    public upgrade(): void {
+        this._level++;
+        const newParam = TowerParameterTable.getParam(this.towerType, this.level);
+        this._attackPower = newParam.attack;
+        this._attackRange = newParam.attackRange;
+        this._attackCooltime = newParam.attackCooltime;
+        this._buyAmount = newParam.buyAmount;
+        this._upgradeAmount = newParam.upgradeAmount;
+        this._sellAmount = newParam.sellAmount;
+        
+        this.markDirty();
+    }
+
+    /**
+     * 当たり判定後に呼ばれる更新処理
+     */
+    public lateUpdate(_deltaTime: number): void {
+        if (this._cooldownTimer > 0) return;
+        if (this._collisionEnemies.length === 0) return;
+    
+        let nearest: EnemyEntity | null = null;
+        let minDist = Infinity;
+    
+        // 当たったエネミーから最も近い敵を探す
+        for (const enemy of this._collisionEnemies) {
+            const dist = this.position.distance(enemy.position);
+            if (dist < minDist) {
+                minDist = dist;
+                nearest = enemy;
+            }
+        }
+    
+        // 最も近い敵を攻撃する
+        if (nearest) {
+            this.attack(nearest);
+            this._cooldownTimer = this._attackCooltime;
+        }
+    
+        this._collisionEnemies.length = 0; // リストリセット
+    }
+
     /**
      * 攻撃を行う
      * @param enemy 
@@ -136,14 +171,13 @@ export class TowerEntity extends Entity<TowerState> {
         otherColliderType: ColliderType,
         selfColliderType: ColliderType
     ): void {
-        if (selfColliderType === ColliderType.Attack) {
-            if (other instanceof EnemyEntity && other.isAlive() && otherColliderType === ColliderType.Hitbox) {
-                if (this._cooldownTimer <= 0) {
-                    this.attack(other);
-                    this._cooldownTimer = this._attackCooltime;
-                }
-            }
-        }
+        if (selfColliderType !== ColliderType.Attack) return;
+        if (!(other instanceof EnemyEntity)) return;
+        if (!other.isAlive()) return;
+        if (otherColliderType !== ColliderType.Hitbox) return;
+        if (this._cooldownTimer > 0) return; // クールダウン中なら無視
+    
+        this._collisionEnemies.push(other);
     }
 
     /**

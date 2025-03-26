@@ -1,11 +1,12 @@
 import { memo, JSX, useState, useEffect } from "react";
 import { GameManager } from "../../game/core/GameManager";
-import { TowerEntity, TowerType } from "../../game/entities/tower/TowerEntity";
+import { TowerEntity } from "../../game/entities/tower/TowerEntity";
 import { TowerParameterTable } from "../../game/entities/tower/TowerParameterTable";
 import { GameSettings } from "../../game/settings/GameSettings";
 import { Vector2 } from "../../game/math/Vector2";
 import { MapChipType } from "../../game/map/MapChipType";
 import { MapChip } from "../../game/map/MapChip";
+import { TowerType } from "../../game/entities/tower/TowerType";
 import "../../css/map/MapInteractionLayer.css"
 
 function MapInteractionLayer(): JSX.Element | null {
@@ -21,7 +22,7 @@ function MapInteractionLayer(): JSX.Element | null {
 
         gameManager.addGameStateChanged(onGameChanged);
         return () => gameManager.removeGameStateChanged(onGameChanged);
-    }, [gameManager]);
+    }, []);
 
     const mapManager = gameManager.mapManager;
     const entityManager = gameManager.entitiesManager;
@@ -40,6 +41,13 @@ function MapInteractionLayer(): JSX.Element | null {
         const chip = mapManager.getMapChip(position);
         if (chip?.mapChipType !== MapChipType.Tower) {
             console.log("設置できないマスです");
+            return;
+        }
+
+        // すでにその位置にタワーがあるか確認
+        const existingTower = entityManager.getTowerAtPosition?.(position);
+        if (existingTower) {
+            console.log("すでにタワーが設置されています");
             return;
         }
 
@@ -63,7 +71,7 @@ function MapInteractionLayer(): JSX.Element | null {
             entityManager.addEntity(tower);
         }
         else {
-            alert("お金が足りません。");
+            alert("所持金が足りません。");
         }
     };
 
@@ -102,6 +110,8 @@ function MapInteractionLayer(): JSX.Element | null {
                         data-y={y}
                         style={{
                             cursor: gameManager.isGamePaused() ? "not-allowed" : "default",
+                            width: GameSettings.TILE_SIZE,
+                            height: GameSettings.TILE_SIZE,
                         }}
                         onDragEnter={(e) => {
                             const chip = mapManager.getMapChip(getPositionFromElement(e.currentTarget));

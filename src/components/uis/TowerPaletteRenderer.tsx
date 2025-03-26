@@ -1,35 +1,34 @@
 import { JSX, useEffect, useState } from "react";
-import { TowerType } from "../../game/entities/tower/TowerEntity";
 import { GameManager } from "../../game/core/GameManager";
 
 import "../../css/uis/TowerPaletteRenderer.css"
 import { GameLifecycleState } from "../../game/core/GamelifecycleState";
 import { WaveState } from "../../game/wave/WaveState";
 import { TowerParameterTable } from "../../game/entities/tower/TowerParameterTable";
+import { TowerType } from "../../game/entities/tower/TowerType";
 
-export function TowerPaletteRenderer(): JSX.Element | null {
+interface TowerPaletteRendererProps {
+    gameState: GameLifecycleState
+}
+
+export function TowerPaletteRenderer({ gameState }: TowerPaletteRendererProps): JSX.Element | null {
     const gameManager = GameManager.getInstance();
     const waveManager = gameManager.waveManager;
 
-    const [gameState, setGameState] = useState(gameManager.getLifecycleState());
     const [waveState, setWaveState] = useState(() => waveManager?.getWaveState() ?? WaveState.Preparing);
 
     useEffect(() => {
         if (!waveManager) return;
 
+        setWaveState(waveManager.getWaveState());
+
         const onWaveChanged = (state: WaveState) => {
             setWaveState(state);
         }
 
-        const onGameChanged = (state: GameLifecycleState) => {
-            setGameState(state);
-        }
-
-        gameManager.addGameStateChanged(onGameChanged);
         waveManager.addWaveStateChanged(onWaveChanged);
 
         return () => {
-            gameManager.removeGameStateChanged(onGameChanged);
             waveManager.removeWaveStateChanged(onWaveChanged);
         }
     }, [waveManager]);

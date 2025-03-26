@@ -2,45 +2,64 @@ import { JSX, useEffect, useState } from "react";
 import { GameManager } from "../../game/core/GameManager";
 import { WaveState } from "../../game/wave/WaveState";
 import { GameLifecycleState } from "../../game/core/GamelifecycleState";
+import { WaveManager } from "../../game/wave/WaveManager";
 import "../../css/uis/WaveControlRenderer.css"
 
-export function WaveControlRenderer(): JSX.Element | null {
+interface WaveControlRendererProps {
+    gameState: GameLifecycleState
+}
+
+export function WaveControlRenderer({ gameState }: WaveControlRendererProps): JSX.Element | null {
     const gameManager = GameManager.getInstance();
-    const waveManager = gameManager.waveManager;
 
-    // 初期値は null 安全を考慮
-    const [autoStart, setAutoStart] = useState(() => waveManager?.getAutoStartEnabled() ?? false);
-    const [waveState, setWaveState] = useState(() => waveManager?.getWaveState() ?? WaveState.Preparing);
-    const [gameState, setGameState] = useState(gameManager.getLifecycleState());
+    const [waveManager, setWaveManager] = useState<WaveManager | null>(null);
+    const [autoStart, setAutoStart] = useState(false);
+    const [waveState, setWaveState] = useState<WaveState>(WaveState.Preparing);
+    const [remainingTime, setRemainingTime] = useState<number>(0);
 
-    const [remainingTime, setRemainingTime] = useState<number>(waveManager?.getRemainingPreparationTime() ?? 0);
+    // 初期化チェック
+    useEffect(() => {
+        const wm = gameManager.waveManager;
+        if (wm) {
+            setWaveManager(wm);
+            setAutoStart(wm.getAutoStartEnabled());
+            setWaveState(wm.getWaveState());
+            setRemainingTime(wm.getRemainingPreparationTime());
+            return;
+        }
 
+        const check = setInterval(() => {
+            const wm = GameManager.getInstance().waveManager;
+            if (wm) {
+                setWaveManager(wm);
+                setAutoStart(wm.getAutoStartEnabled());
+                setWaveState(wm.getWaveState());
+                setRemainingTime(wm.getRemainingPreparationTime());
+                clearInterval(check);
+            }
+        }, 100);
+
+        return () => clearInterval(check);
+    }, []);
+
+    // イベントリスナー登録
     useEffect(() => {
         if (!waveManager) return;
 
-        setAutoStart(waveManager.getAutoStartEnabled());
-        setWaveState(waveManager.getWaveState());
-
         const onWaveChanged = (state: WaveState) => {
             setWaveState(state);
-        }
-
-        const onGameChanged = (state: GameLifecycleState) => {
-            setGameState(state);
-        }
+        };
 
         const handleTimeChanged = (remaining: number) => {
             setRemainingTime(remaining);
-        }
+        };
 
         waveManager.addWaveStateChanged(onWaveChanged);
         waveManager.addPreparationTimeChanged(handleTimeChanged);
-        gameManager.addGameStateChanged(onGameChanged);
 
         return () => {
             waveManager.removeWaveStateChanged(onWaveChanged);
             waveManager.removePreparationTimeChanged(handleTimeChanged);
-            gameManager.removeGameStateChanged(onGameChanged);
         };
     }, [waveManager]);
 
@@ -54,8 +73,10 @@ export function WaveControlRenderer(): JSX.Element | null {
         waveManager?.startNextWave();
     };
 
+    const isAlreadyWaveState = waveState === WaveState.Preparing || waveState === WaveState.Already;
+
     // ウェーブ準備中もしくはゲーム開始前は表示しない
-    if (!waveManager || waveState !== WaveState.Preparing || gameState === GameLifecycleState.NotStarted) {
+    if (!waveManager || !isAlreadyWaveState || gameState === GameLifecycleState.NotStarted) {
         return null;
     }
 

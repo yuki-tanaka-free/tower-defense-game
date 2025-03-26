@@ -1,10 +1,14 @@
-import { memo, JSX } from "react";
+import { memo, JSX, useEffect, useState } from "react";
 import { TowerState } from "../../game/entities/tower/TowerState";
 import { EntityRenderer } from "./EntityRenderer";
-import { TowerType } from "../../game/entities/tower/TowerEntity";
+import { TowerType } from "../../game/entities/tower/TowerType";
+import { TowerSelector } from "../../game/entities/tower/TowerSelector";
+import { GameManager } from "../../game/core/GameManager";
+import { TowerEntity } from "../../game/entities/tower/TowerEntity";
+import { WaveState } from "../../game/wave/WaveState";
 
 interface TowerRendererProps {
-    state: TowerState
+    state: TowerState;
 }
 
 /**
@@ -13,8 +17,37 @@ interface TowerRendererProps {
  * @returns 
  */
 function TowerRenderer({ state }: TowerRendererProps): JSX.Element {
+    const towerSelector = TowerSelector.getInstance();
+    const gameManager = GameManager.getInstance();
+    const entitiesManager = gameManager.entitiesManager;
+    const waveManager = gameManager.waveManager;
+
+    const [waveState, setWaveState] = useState(waveManager?.getWaveState());
+
+    useEffect(() => {
+        if(!waveManager) return;
+        setWaveState(waveManager.getWaveState());
+
+        waveManager.addWaveStateChanged(setWaveState);
+
+        return () => waveManager.removePreparationTimeChanged(setWaveState);
+    }, [waveManager]);
+
+    const handleClick = () => {
+        const tower = entitiesManager?.getEntity<TowerEntity>(state.id);
+        if (tower) {
+            towerSelector.selectedTower = tower;
+        }
+    }
+
+    // ウェーブが準備フェーズか？
+    const isWavePreparing = waveState === WaveState.Preparing;
+
     return (
-        <EntityRenderer state={ state } color={ TowerTypeToColor(state.towerType) }>
+        <EntityRenderer 
+        state={state} 
+        color={TowerTypeToColor(state.towerType)} 
+        onClick={isWavePreparing ? handleClick : undefined}>
             Level: {state.level}
         </EntityRenderer>
     );

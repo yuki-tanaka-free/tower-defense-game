@@ -12,21 +12,34 @@ import "../../css/core/EntitiesRenderer.css"
  * エンティティの描画を行う関数コンポーネント
  * @returns 
  */
-export function EntitiesRenderer(): JSX.Element {
-    const entitiesManager = GameManager.getInstance().entitiesManager;
-    const [entitiesState, setEntitiesState] = useState<EntitiesState>(entitiesManager!.getState());
+export function EntitiesRenderer(): JSX.Element | null {
+    const gameManager = GameManager.getInstance();
+    const entitiesManager = gameManager.entitiesManager;
+
+    const [_, setGameState] = useState(gameManager.getLifecycleState());
+    const [entitiesState, setEntitiesState] = useState<EntitiesState | null>(() => {
+        return entitiesManager?.getState() ?? null;
+    });
 
     useEffect(() => {
+        if (!entitiesManager) return;
+
+        setEntitiesState(entitiesManager!.getState());
+
         const updateState = () => {
             setEntitiesState(entitiesManager!.getState());
         }
 
         entitiesManager?.addOnChangedListener(updateState);
+        gameManager.addGameStateChanged(setGameState);
 
         return () => {
             entitiesManager?.removeOnChangedListener(updateState);
+            gameManager.removeGameStateChanged(setGameState);
         }
-    }, [entitiesManager]);
+    }, [entitiesManager, gameManager]);
+
+    if (!entitiesState) return null; // ← レンダリング前にガード
 
     return (
         <div className="entities-renderer">

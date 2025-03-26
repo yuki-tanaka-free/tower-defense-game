@@ -1,5 +1,5 @@
 import { CsvLoader } from "../../utils/CsvLoader";
-import { TowerType } from "./TowerEntity";
+import { TowerType } from "./TowerType";
 
 interface TowerParameter {
     attack: number;

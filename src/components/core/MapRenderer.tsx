@@ -1,27 +1,35 @@
-import { memo, JSX } from "react";
-import { MapChip } from "../../game/map/MapChip";
+import { memo, JSX, useState, useEffect } from "react";
 import { MapChipType } from "../../game/map/MapChipType";
 import { GameSettings } from "../../game/settings/GameSettings";
-import { GameManager } from "../../game/core/GameManager";
+import { MapManager } from "../../game/map/MapManager";
 import "../../css/core/MapRenderer.css"
-
-const getMapChipColor = (type: MapChipType): string => {
-    switch (type) {
-        case MapChipType.PlayerBase: return "green";
-        case MapChipType.EnemyBase: return "red";
-        case MapChipType.Mountain: return "brown";
-        case MapChipType.Sea: return "blue";
-        case MapChipType.EnemyRoute: return "gray";
-        case MapChipType.Tower: return "yellow";
-        default: return "lightgray";
-    }
-};
+import { GameManager } from "../../game/core/GameManager";
 
 function MapRenderer(): JSX.Element {
-    const mapManager = GameManager.getInstance().mapManager;
-    if (!mapManager) return <p>マップデータがありません。</p>
+    const [mapManager, setMapManager] = useState<MapManager | null>(null);
 
-    const mapData: MapChip[][] = mapManager.map;
+    useEffect(() => {
+        const gameManager = GameManager.getInstance();
+        if (gameManager.mapManager) {
+            setMapManager(gameManager.mapManager);
+            return;
+        }
+
+        const checkInterval = setInterval(() => {
+            const mm = GameManager.getInstance().mapManager;
+            if (mm) {
+                setMapManager(mm);
+                clearInterval(checkInterval);
+            }
+        }, 100);
+    }, []);
+
+    if (!mapManager) {
+        return <p>マップが初期化前です。</p>
+    }
+
+    const mapData = mapManager?.map;
+    
     if (!mapData || mapData.length === 0) {
         return <p>マップデータがありません。</p>;
     }
@@ -46,6 +54,18 @@ function MapRenderer(): JSX.Element {
             ))}
         </div>
     );
+};
+
+const getMapChipColor = (type: MapChipType): string => {
+    switch (type) {
+        case MapChipType.PlayerBase: return "green";
+        case MapChipType.EnemyBase: return "red";
+        case MapChipType.Mountain: return "brown";
+        case MapChipType.Sea: return "blue";
+        case MapChipType.EnemyRoute: return "gray";
+        case MapChipType.Tower: return "yellow";
+        default: return "lightgray";
+    }
 };
 
 export const MemoizedMapRenderer = memo(MapRenderer);

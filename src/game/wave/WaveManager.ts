@@ -9,6 +9,9 @@ import { EnemySpawnData } from "./EnemySpawnData";
 import { Wave } from "./Wave";
 import { WaveState } from "./WaveState";
 
+type RemainingListener = (remainingSec: number) => void;
+type WaveStateListener = (state: WaveState) => void;
+
 export class WaveManager {
     private _waves: Wave[] = [];
 
@@ -18,17 +21,17 @@ export class WaveManager {
 
     // 準備時間
     private lastNotifiedSecond: number = -1; // 最後に通知した残り時間
-    private preparationTimer: number = 0;
+    private _preparationTimer: number = 0;
     private readonly defaultPreparationDuration: number = 60; // 60秒
-    private preparationTimeListeners = new Set<(remainingSec: number) => void>();
+    private preparationTimeListeners = new Set<RemainingListener>();
 
     private mapManager: MapManager;
     private entitiesManager: EntitiesManager;
 
     private autoStartEnabled: boolean = false;
 
-    private waveState: WaveState = WaveState.Preparing;
-    private waveStateListeners = new Set<(state: WaveState) => void>();
+    private _waveState: WaveState = WaveState.Preparing;
+    private waveStateListeners = new Set<WaveStateListener>();
 
     constructor(
         mapManager: MapManager,
@@ -47,6 +50,14 @@ export class WaveManager {
             const wave = await Wave.create(i);
             this._waves.push(wave);
         }
+    }
+
+    /**
+     * 全てのウェーブが完了したか
+     * @returns 
+     */
+    public isAllWaveCompleted(): boolean {
+        return this.currentWaveIndex >= this._waves.length;
     }
 
     /**
@@ -70,7 +81,7 @@ export class WaveManager {
      * @returns 
      */
     public getWaveState(): WaveState {
-        return this.waveState;
+        return this._waveState;
     }
 
     /**
@@ -89,13 +100,36 @@ export class WaveManager {
         return Math.max(0, Math.ceil(this.preparationTimer));
     }
 
+    public get waveState(): WaveState {
+        return this._waveState;
+    }
+
+    public set waveState(newState: WaveState) {
+        if (this._waveState !== newState) {
+            this._waveState = newState;
+            this.notifyWaveStateChanged();
+        }
+    }
+
+    public get preparationTimer(): number {
+        return this._preparationTimer;
+    }
+
+    public set preparationTimer(newTime: number) {
+        this._preparationTimer = newTime;
+        const currentSec = Math.ceil(this._preparationTimer);
+        if (currentSec !== this.lastNotifiedSecond) {
+            this.lastNotifiedSecond = currentSec;
+            this.notifyPreparationTimeChanged(currentSec);
+        }
+    }
+
     /**
      * 準備ステートに移行
      */
     public startPreparation(): void {
         this.preparationTimer = this.defaultPreparationDuration;
         this.waveState = WaveState.Preparing;
-        this.notifyWaveStateChanged();
 
         if (this.autoStartEnabled) {
             this.startNextWave();
@@ -106,19 +140,18 @@ export class WaveManager {
      * 次のウェーブを開始する
      */
     public startNextWave(): void {
-        if (this.waveState !== WaveState.Preparing) return;
+        const canStart = this.waveState === WaveState.Preparing || this.waveState === WaveState.Already;
+        if (canStart === false) return;
 
         const wave = this._waves[this.currentWaveIndex];
         if (!wave) {
             this.waveState = WaveState.GameClear;
-            this.notifyWaveStateChanged();
             return;
         }
 
         this.spawnQueue = [...wave.enemySpawnDatas];
         this.elapsedTime = 0;
         this.waveState = WaveState.Running;
-        this.notifyWaveStateChanged();
     }
 
     /**
@@ -137,14 +170,13 @@ export class WaveManager {
      */
     public triggerGameOver(): void {
         this.waveState = WaveState.GameOver;
-        this.notifyWaveStateChanged();
     }
 
     /**
      * ウェーブの状態変更通知イベントを追加
      * @param listener 
      */
-    public addWaveStateChanged(listener: (state: WaveState) => void) {
+    public addWaveStateChanged(listener: WaveStateListener) {
         this.waveStateListeners.add(listener);
     }
 
@@ -152,7 +184,7 @@ export class WaveManager {
      * ウェーブの状態変更通知イベントを削除
      * @param listener 
      */
-    public removeWaveStateChanged(listener: (state: WaveState) => void) {
+    public removeWaveStateChanged(listener: WaveStateListener) {
         this.waveStateListeners.delete(listener);
     }
 
@@ -169,7 +201,7 @@ export class WaveManager {
      * 残り時間変更イベントの追加
      * @param listener 
      */
-    public addPreparationTimeChanged(listener: (remainingSec: number) => void) {
+    public addPreparationTimeChanged(listener: RemainingListener) {
         this.preparationTimeListeners.add(listener);
     }
     
@@ -177,7 +209,7 @@ export class WaveManager {
      * 残り時間変更イベントの削除
      * @param listener 
      */
-    public removePreparationTimeChanged(listener: (remainingSec: number) => void) {
+    public removePreparationTimeChanged(listener: RemainingListener) {
         this.preparationTimeListeners.delete(listener);
     }
 
@@ -196,13 +228,8 @@ export class WaveManager {
         if (this.waveState === WaveState.Preparing) {
             this.preparationTimer -= deltaTime;
 
-            const currentSec = Math.ceil(this.preparationTimer);
-            if (currentSec !== this.lastNotifiedSecond) {
-                this.lastNotifiedSecond = currentSec;
-                this.notifyPreparationTimeChanged(currentSec);
-            }
-
             if (this.preparationTimer <= 0) {
+                this.waveState = WaveState.Already;
                 if (this.autoStartEnabled) {
                     this.startNextWave(); // 自動開始
                 } else {
@@ -229,7 +256,6 @@ export class WaveManager {
             if (this.spawnQueue.length === 0 &&
                 this.entitiesManager.getEntityCount(EntityType.Enemy) === 0) {
                 this.waveState = WaveState.Completed;
-                this.notifyWaveStateChanged();
                 this.proceedAfterCompletion();
             }
         }

@@ -9,6 +9,7 @@ interface EntityRendererProps {
     color?: string;
     borderRadius?: string;
     children?: ReactNode;
+    onClick?: () => void;
 }
 
 export function EntityRenderer({
@@ -17,12 +18,14 @@ export function EntityRenderer({
     color = "white",
     borderRadius = "0%",
     children,
+    onClick,
 }: EntityRendererProps): JSX.Element {
     const offset = (GameSettings.TILE_SIZE - size) / 2;
 
     return (
         <div
             className="entity-renderer"
+            onClick={onClick}
             style={{
                 left: state.position.x * GameSettings.TILE_SIZE + offset,
                 top: state.position.y * GameSettings.TILE_SIZE + offset,
@@ -30,6 +33,7 @@ export function EntityRenderer({
                 height: size,
                 backgroundColor: color,
                 borderRadius: borderRadius,
+                pointerEvents: onClick ? "auto" : "none"
             }}
         >
             {children}

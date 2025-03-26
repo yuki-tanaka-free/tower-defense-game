@@ -66,8 +66,20 @@ export class Wave {
         // CSVデータの読み込み
         const rows = await CsvLoader.loadCsv("/assets/wave/waveBonus.csv");
 
-        // 現在のステージ数に応じた報酬を読み込み
-        this._clearBonus = Number(rows[stageNum]);
+        for (const row of rows) {
+            const [waveStr, bonusStr] = row.split(",");
+    
+            const wave = Number(waveStr);
+            const bonus = Number(bonusStr);
+    
+            if (wave === stageNum) {
+                this._clearBonus = bonus;
+                return;
+            }
+        }
+    
+        // 該当ステージが見つからなかった場合は 0 にする
+        this._clearBonus = 0;
     }
 
     /**

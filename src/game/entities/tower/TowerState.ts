@@ -1,5 +1,5 @@
 import { EntityState } from "../EntityState";
-import { TowerType } from "./TowerEntity";
+import { TowerType } from "./TowerType";
 
 export interface TowerState extends EntityState {
     level: number;
